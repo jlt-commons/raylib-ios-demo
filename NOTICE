@@ -82,6 +82,15 @@ examples behind them are zlib, so their altered-source marking stands.
     Copyright (c) 2026 Burin Choomnuan
     zlib License before 2026-09-05, EPL 2.0 after
 
+## The raylib examples behind the ports
+
+Every scene except the three carried ones is, through raylib-jolt-demo, an
+altered version of one of raylib's C examples, which are zlib:
+
+    raylib 6.0    https://github.com/raysan5/raylib
+                  Copyright (c) 2013-2026 Ramon Santamaria (@raysan5)
+                  zlib/libpng License
+
 ## Ported from babashka/ffi, and altered
 
 `helitorus/`, `doom/` (the namespaces `scenes/doom.cljc`, with `doom/map.cljc`,

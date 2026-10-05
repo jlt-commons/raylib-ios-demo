@@ -13,8 +13,11 @@ A scene is a sub-project, and `demos.edn` lists it. Everything else is generated
      docstring names the raylib-jolt-demo demo it ports, with "originally raylib-jlt",
      because the zlib licence asks that an altered source be marked.
    - `src/net/b12n/raylib_ios/scenes/<id>/draw.clj`, which `defmethod`s `draw-scene!`
-     from `net.b12n.raylib-ios.gallery.draw-util`.
+     from `net.b12n.raylib-ios.draw`.
    - `test/net/b12n/raylib_ios/scenes/<id>_test.cljc`.
+     - A `-` in the id is `_` in file paths, as Clojure's loader expects:
+       `:touch-trail` is `touch_trail.cljc`, `touch_trail/draw.clj` and
+       `touch_trail_test.cljc`.
    Three habits from the ports so far:
    - **Frame-locked speeds.** The originals move by a fixed step per frame, so a
      port scales that step to the screen. Scale each axis by its own dimension when

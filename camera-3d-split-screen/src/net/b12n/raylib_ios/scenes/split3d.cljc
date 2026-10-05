@@ -37,7 +37,7 @@
 
   The render textures become two viewports from `net.b12n.raylib-ios.soft3d/field`'s field,
   stacked in portrait (player one on top) and side by side in landscape, each
-  with its own `view-proj` and its own scissor in the gallery's draw method.
+  with its own `view-proj` and its own scissor in its draw method.
   Each camera is fitted to its half by `net.b12n.raylib-ios.soft3d/fit-camera` against the
   original's 400 by 450 half, so a half at least that wide keeps the original's
   45 degree fovy. The bar keeps the original's proportions, its height twice

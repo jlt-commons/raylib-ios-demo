@@ -12,7 +12,7 @@
   updates every frame whether or not an entry was made, so a gesture that begins
   outside the box and carries on inside it is not logged either.
 
-  Here `net.b12n.raylib-ios.gallery` hands the code down as `:raylib-gesture`, read by
+  Here `net.b12n.raylib-ios.frame` hands the code down as `:raylib-gesture`, read by
   `net.b12n.raylib-ios.host/get-gesture-detected`. The recogniser is raylib's own: this scene
   only names what it says, and runs it unchanged. The 10 codes are
   `raylib.h`'s `Gesture` enum, and a code outside them is logged as \"GESTURE\"

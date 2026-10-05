@@ -12,7 +12,7 @@ The Lorenz attractor, ported from raylib-jolt-demo's `lorenz-attractor` demo (or
 
 | per frame | fps | notes |
 | --- | ---: | --- |
-| 450 lines, re-projected each frame | 58 | see the sweep in [performance](performance-on-a-phone.html) |
+| 450 lines, re-projected each frame | 58 | see the sweep in [performance](../../../docs/guide/performance-on-a-phone.md) |
 
 Frame rates are from an iPhone 17 Pro; the [scene catalog](../../../docs/guide/scene-catalog.md) says how they were measured.
 

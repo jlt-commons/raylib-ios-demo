@@ -186,10 +186,10 @@ are the namespace names and whitespace. Put the upstream names back, collapse
 the whitespace, and the sha256 matches; a test and `tools/extract-from-notebooks`
 both check it.
 
-They were written for Android. They run here untouched because the contract
+They were written for Android. They run here unchanged apart from namespace names and whitespace, because the contract
 they were written against never mentions a platform: a scene is `:init`,
 `:update`, `:draw` and `:dispose` over immutable state, and every raylib call
-lives in `net.b12n.raylib-ios.gallery`'s drawing methods instead.
+lives in each scene's draw namespace instead.
 
 That is the whole argument for the split, and it is the reason most of the
 ports were transcription rather than rewrites. Not all of them: several needed

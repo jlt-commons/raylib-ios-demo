@@ -46,7 +46,7 @@
   on the laptop, the figure that stands in for the phone (the performance
   guide's \"Sizing a scene on the laptop\"). Cutting tessellation alone cannot
   reach it, because drawing the original's 2005 items is 0.36 ms by itself. The camera never moves and the scene reads nothing, so the list
-  depends on the screen alone (a test checks that), and `net.b12n.raylib-ios.gallery` builds
+  depends on the screen alone (a test checks that), and its draw namespace builds
   it once per screen and draws the same list every frame, 0.36 ms with the draw
   side. The first frame and every rotation rebuild it: about 2.5 ms on the
   laptop, a single-frame hitch (about 80 ms on the phone at a rough 33x). The

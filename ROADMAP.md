@@ -9,7 +9,7 @@ bottom, and the dated detail lives in `CHANGELOG.md`.
 
 [raylib-jolt-demo](https://github.com/jlt-commons/raylib-jolt-demo) (the home of raylib-jlt's examples) has 187 examples. 139 of
 them are in the gallery as of 2026-10-04, which leaves 48. That counts
-examples and not scenes: the gallery has 134 scenes ported from raylib-jlt, one
+examples and not scenes: the gallery has 134 scenes ported from raylib-jolt-demo's demos (originally raylib-jlt's), one
 of which (`easings`) covers three examples, and the three Android scenes are
 versions of `flappy_bird`, `eyes` and `mouse_trail`, so 134 + 2 + 3 = 139. They sort into
 three groups by what a port would need. The grouping comes from reading each
@@ -159,6 +159,19 @@ Still blocked, and what each waits on:
 - **Pin raylib-ios by sha.** `common/deps.edn` points at a checkout beside this
   one until raylib-ios is pushed. Then it takes a `:git/url` and a `:git/sha`,
   and CI stops checking out a second repository.
+- **`bb gen` cannot see a file orphaned by an `:id` change.** A renamed `:name`
+  is caught; a changed `:id` leaves the old `app.clj` and `live.clj` behind, to
+  delete by hand.
+- **Embed each scene's image in its page** from `docs/images`. The 136
+  per-scene pages carry none.
+- **Give `porting-an-example.md` and `performance-on-a-phone.md` one home each.**
+  They exist here and in raylib-ios and have already drifted.
+- **Drop the shell tests that duplicate raylib-ios's** once raylib-ios is
+  pinned (`gallery_smoke_test.clj:115-170`), and with them the reason
+  `guard-scene` and `next-scroll` are public there.
+- **Check the prose counts.** A test that the typed counts in the README,
+  `docs/guide/index.md`, the catalog, `docs/site.edn` and `home.html` match
+  `demos.edn`.
 
 ## Done
 

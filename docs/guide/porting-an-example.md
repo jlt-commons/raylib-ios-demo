@@ -270,7 +270,7 @@ texture, and not by eye. A scene that fills the texture in a pixel fn should
 avoid allocating a vector per texel, since the phone runs it 69 thousand times
 for Sprite Animation's strip alone.
 
-Make a static spec a `def` or a `delay` in the gallery, so the same object comes
+Make a static spec a `def` or a `delay` in the scene, so the same object comes
 back each visit. `net.b12n.raylib-ios.texture` keeps the filled buffer for a spec without a
 `:version`, and a reopen then costs about one frame instead of a refill. The
 catalog rows give each scene's first-open pause, which runs up to about a second
