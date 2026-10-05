@@ -97,6 +97,32 @@ registry holds the same 137 scenes in the same order and categories as raylib-io
 did before the split, and that every sub-project's app loads in a fresh jolt that sees
 only that sub-project's classpath. CI runs the jolt suite under jolt 0.8.6.
 
+## Moving to a newer raylib-ios
+
+raylib-ios is pinned in exactly one place, the `:git/sha` in `common/deps.edn`.
+Every sub-project depends on `common/`, so they all follow it. Before you move,
+check that raylib-ios's CI is green at the commit you want.
+
+Change the sha, then run:
+
+```sh
+bb doctor           # its "raylib-ios at" line should end in the new sha
+bb gen --check
+bb check
+bb lint:strict
+jolt -M:test
+clojure -M:test
+```
+
+Then build `bb gallery` and open a few scenes on the phone, since the tests run over
+stubbed raylib. The gallery smoke test redefines some raylib-ios internals and keeps
+a copy of its rlgl model in `gallery/test/.../rlgl_model.clj`, so a refactor inside
+raylib-ios can fail it even when no public name changed. Fix the copy, not the pin.
+
+To try a raylib-ios change that isn't pushed yet, point `common/deps.edn` at the
+checkout with `{:local/root "../../raylib-ios"}` and run the same gates. Don't commit
+that: CI can't see your checkout.
+
 ## Adding a scene
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). Short version: make the sub-project, add a line
