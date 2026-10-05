@@ -21,3 +21,7 @@ _site/
 # agent guides, symlinked from a private notes store; a committed link would dangle in every other clone
 CLAUDE.md
 AGENTS.md
+
+# agent guides, symlinked from a private store; never committed
+CLAUDE.md
+AGENTS.md
