@@ -139,6 +139,13 @@ babashka/ffi's licence notice, as shipped in its LICENSE file:
     SOFTWARE.
 
 
+## Perlin noise
+
+The `magnifying-glass/` scene draws a backdrop with raylib-ios's Perlin
+(`perlin-texture!`, a call into raylib's `GenImagePerlinNoise`, which is
+stb_perlin, MIT or public domain). That code is not in this repository, and
+raylib-ios's NOTICE carries the credit and the MIT text.
+
 ## Not redistributed
 
 This repository carries no raylib or SDL2 source. The apps link them through

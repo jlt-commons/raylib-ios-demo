@@ -54,3 +54,10 @@
         failures (keep (fn [[dir ns]] (loads-alone dir ns)) targets)]
     (is (= 137 (count targets)))
     (is (empty? failures) (str (count failures) " of " (count targets) " failed:\n" (str/join "\n" failures)))))
+
+(deftest an-untested-scene-says-so-instead-of-opening-a-repl
+  ;; stdin is closed, so a jolt that fell through to a REPL would read EOF and
+  ;; still exit 0: the message is what proves it did not start.
+  (let [{:keys [exit out]} (sh/sh "bb" "test" "spirograph" :in "")]
+    (is (zero? exit))
+    (is (str/includes? out "spirograph: no tests"))))

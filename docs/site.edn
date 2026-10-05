@@ -2,9 +2,8 @@
 ;; docs-engine (https://github.com/jlt-commons/docs-engine).
 ;;
 ;; Build it locally from a docs-engine checkout with `bb build <this repo>`,
-;; or `bb serve <this repo>` to preview. CI builds and publishes it from
-;; .github/workflows/site.yml, which calls the shared workflow in
-;; jlt-commons/ci-builds.
+;; or `bb serve <this repo>` to preview. Nothing publishes it: there is no Pages
+;; workflow, and adding one is a separate decision.
 {;; :base-path is what makes this a project site rather than an org one. The
  ;; site is served at https://jlt-commons.github.io/raylib-ios-demo/, so every URL
  ;; the engine emits needs that prefix. Leave it out and the pages still

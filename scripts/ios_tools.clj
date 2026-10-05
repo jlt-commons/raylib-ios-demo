@@ -79,9 +79,12 @@
   (sh! dir "deploy.sh" {}))
 
 (defn run!
-  "Build `ns` and install it on the phone."
+  "Build `ns` and install it on the phone. With DRY_RUN=1 the build prints what
+  it resolved and stops, and nothing is deployed."
   [dir ns]
-  (ok-or #(build! dir ns) #(deploy! dir)))
+  (if (= "1" (System/getenv "DRY_RUN"))
+    (build! dir ns)
+    (ok-or #(build! dir ns) #(deploy! dir))))
 
 (defn live!
   "Build `ns` as a dev app with an nREPL, install it and say how to reach it.
@@ -91,11 +94,21 @@
   (sh! dir "live.sh" {"NS" ns
                       "DEV_BUILD" (or (System/getenv "DEV_BUILD") "1")}))
 
-(defn test!
-  "Run the tests of the sub-project in `dir`, under jolt."
+(defn has-tests?
+  "True when the sub-project in `dir` has a test namespace."
   [dir]
-  (:exit (p/shell {:continue true
-                   :dir (str dir)} (jolt-cmd) "-M:test")))
+  (boolean (seq (fs/glob (fs/path dir "test") "**_test.{clj,cljc}"))))
+
+(defn test!
+  "Run the tests of the sub-project in `dir`, under jolt. A sub-project with no
+  tests says so and exits 0 without starting jolt: it has no :test alias, and
+  `jolt -M:test` without one opens a REPL."
+  [dir]
+  (if (has-tests? dir)
+    (:exit (p/shell {:continue true
+                     :dir (str dir)} (jolt-cmd) "-M:test"))
+    (do (println (str (fs/file-name (fs/absolutize dir)) ": no tests"))
+        0)))
 
 (defn exit-with [exit]
   (when-not (zero? exit) (System/exit exit)))
