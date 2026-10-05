@@ -5,7 +5,7 @@
   milestone 4) before the scenes moved here. That loop is gone, since the
   single-scene runner does what it did, but its drawing is what this scene
   draws, so it lives on as `draw-game!`."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [draw-scene!]]
+  (:require [net.b12n.raylib-ios.draw :refer [draw-scene!]]
             [net.b12n.raylib-ios.host :as rl]
             [net.b12n.raylib-ios.scenes.flappy-bird :as flappy]))
 

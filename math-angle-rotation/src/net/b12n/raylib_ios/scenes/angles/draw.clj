@@ -1,6 +1,6 @@
 (ns net.b12n.raylib-ios.scenes.angles.draw
   "The draw-scene! method for the `:angles` scene, beside the scene it draws."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [draw-scene! stroke!]]
+  (:require [net.b12n.raylib-ios.draw :refer [draw-scene! stroke!]]
             [net.b12n.raylib-ios.host :as rl]
             [net.b12n.raylib-ios.scenes.angles :as ang]))
 

@@ -1,6 +1,6 @@
 (ns net.b12n.raylib-ios.scenes.following-eyes.draw
   "The draw-scene! method for the `:following-eyes` scene, beside the scene it draws."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [draw-scene! WHITE]]
+  (:require [net.b12n.raylib-ios.draw :refer [draw-scene! WHITE]]
             [net.b12n.raylib-ios.host :as rl]
             [net.b12n.raylib-ios.scenes.following-eyes :as eyes]))
 

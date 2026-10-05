@@ -1,10 +1,8 @@
 (ns net.b12n.raylib-ios.scenes.spincubes.draw
   "The draw-scene! method for the `:spincubes` scene, beside the scene it draws."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [clear-to!
-                                                           draw-caption!
-                                                           draw-in-field!
-                                                           draw-scene!
-                                                           host-measure]]
+  (:require [net.b12n.raylib-ios.draw :refer [clear-to! draw-caption!
+                                              draw-in-field! draw-scene!
+                                              host-measure]]
             [net.b12n.raylib-ios.host :as rl]
             [net.b12n.raylib-ios.scenes.spincubes :as spincubes]))
 

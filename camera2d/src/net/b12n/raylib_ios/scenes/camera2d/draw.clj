@@ -1,7 +1,6 @@
 (ns net.b12n.raylib-ios.scenes.camera2d.draw
   "The draw-scene! method for the `:camera2d` scene, beside the scene it draws."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [draw-scene!
-                                                           host-measure]]
+  (:require [net.b12n.raylib-ios.draw :refer [draw-scene! host-measure]]
             [net.b12n.raylib-ios.host :as rl]
             [net.b12n.raylib-ios.scenes.camera2d :as c2d]))
 

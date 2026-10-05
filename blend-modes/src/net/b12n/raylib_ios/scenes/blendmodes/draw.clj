@@ -1,8 +1,7 @@
 (ns net.b12n.raylib-ios.scenes.blendmodes.draw
   "The draw-scene! method for the `:blendmodes` scene, beside the scene it draws."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [clear-to!
-                                                           draw-scene!
-                                                           host-measure]]
+  (:require [net.b12n.raylib-ios.draw :refer [clear-to! draw-scene!
+                                              host-measure]]
             [net.b12n.raylib-ios.host :as rl]
             [net.b12n.raylib-ios.scenes.blendmodes :as blendmodes]))
 

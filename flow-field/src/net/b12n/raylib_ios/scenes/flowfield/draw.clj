@@ -1,6 +1,6 @@
 (ns net.b12n.raylib-ios.scenes.flowfield.draw
   "The draw-scene! method for the `:flowfield` scene, beside the scene it draws."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [draw-scene!]]
+  (:require [net.b12n.raylib-ios.draw :refer [draw-scene!]]
             [net.b12n.raylib-ios.host :as rl]
             [net.b12n.raylib-ios.scenes.flowfield :as flow]))
 

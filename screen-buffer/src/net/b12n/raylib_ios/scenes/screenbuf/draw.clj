@@ -1,7 +1,6 @@
 (ns net.b12n.raylib-ios.scenes.screenbuf.draw
   "The draw-scene! method for the `:screenbuf` scene, beside the scene it draws."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [clear-to!
-                                                           draw-scene!]]
+  (:require [net.b12n.raylib-ios.draw :refer [clear-to! draw-scene!]]
             [net.b12n.raylib-ios.scenes.screenbuf :as screenbuf]
             [net.b12n.raylib-ios.texture :as texture]))
 

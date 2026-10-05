@@ -1,10 +1,8 @@
 (ns net.b12n.raylib-ios.scenes.doom.draw
   "The draw-scene! method for the `:doom` scene, beside the scene it draws."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [clear-to! color
-                                                           draw-caption!
-                                                           draw-in-field!
-                                                           draw-scene!
-                                                           host-measure]]
+  (:require [net.b12n.raylib-ios.draw :refer [clear-to! color draw-caption!
+                                              draw-in-field! draw-scene!
+                                              host-measure]]
             [net.b12n.raylib-ios.host :as rl]
             [net.b12n.raylib-ios.scenes.doom :as doom]
             [net.b12n.raylib-ios.scenes.doom.hud :as doom-hud]))

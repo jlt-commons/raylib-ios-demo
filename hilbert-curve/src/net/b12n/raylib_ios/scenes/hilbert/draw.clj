@@ -1,6 +1,6 @@
 (ns net.b12n.raylib-ios.scenes.hilbert.draw
   "The draw-scene! method for the `:hilbert` scene, beside the scene it draws."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [draw-scene!]]
+  (:require [net.b12n.raylib-ios.draw :refer [draw-scene!]]
             [net.b12n.raylib-ios.host :as rl]))
 
 (defmethod draw-scene! :hilbert [_ {:keys [points colours]} _]

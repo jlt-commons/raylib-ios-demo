@@ -1,6 +1,6 @@
 (ns net.b12n.raylib-ios.scenes.shapes.draw
   "The draw-scene! method for the `:shapes` scene, beside the scene it draws."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [draw-scene!]]
+  (:require [net.b12n.raylib-ios.draw :refer [draw-scene!]]
             [net.b12n.raylib-ios.host :as rl]
             [net.b12n.raylib-ios.scenes.outlines :as outl]
             [net.b12n.raylib-ios.scenes.shapes :as shp]))

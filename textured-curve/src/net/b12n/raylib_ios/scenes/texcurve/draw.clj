@@ -1,9 +1,7 @@
 (ns net.b12n.raylib-ios.scenes.texcurve.draw
   "The draw-scene! method for the `:texcurve` scene, beside the scene it draws."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [clear-to! color
-                                                           draw-caption!
-                                                           draw-scene!
-                                                           host-measure]]
+  (:require [net.b12n.raylib-ios.draw :refer [clear-to! color draw-caption!
+                                              draw-scene! host-measure]]
             [net.b12n.raylib-ios.host :as rl]
             [net.b12n.raylib-ios.scenes.texcurve :as texcurve]
             [net.b12n.raylib-ios.texture :as texture]))

@@ -1,9 +1,7 @@
 (ns net.b12n.raylib-ios.scenes.npatch.draw
   "The draw-scene! method for the `:npatch` scene, beside the scene it draws."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [clear-to!
-                                                           draw-caption!
-                                                           draw-scene!
-                                                           host-measure]]
+  (:require [net.b12n.raylib-ios.draw :refer [clear-to! draw-caption!
+                                              draw-scene! host-measure]]
             [net.b12n.raylib-ios.scenes.npatch :as npatch]
             [net.b12n.raylib-ios.texture :as texture]))
 

@@ -1,6 +1,6 @@
 (ns net.b12n.raylib-ios.scenes.balls.draw
   "The draw-scene! method for the `:balls` scene, beside the scene it draws."
-  (:require [net.b12n.raylib-ios.gallery.draw-util :refer [draw-scene!]]
+  (:require [net.b12n.raylib-ios.draw :refer [draw-scene!]]
             [net.b12n.raylib-ios.host :as rl]))
 
 (defmethod draw-scene! :balls [_ {:keys [balls]} _]

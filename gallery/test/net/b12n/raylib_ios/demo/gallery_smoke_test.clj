@@ -23,10 +23,10 @@
             [jolt.ffi :as ffi]
             [net.b12n.raylib-ios.demo.gallery.registry :as reg]
             [net.b12n.raylib-ios.demo.rlgl-model :as gl]
+            [net.b12n.raylib-ios.draw :as draw]
             [net.b12n.raylib-ios.gallery :as rg]
             [net.b12n.raylib-ios.gallery.core :as gallery]
             [net.b12n.raylib-ios.gallery.diagnostics :as diag]
-            [net.b12n.raylib-ios.gallery.draw-util :as du]
             [net.b12n.raylib-ios.host :as host]
             [net.b12n.raylib-ios.probe :as probe]
             [net.b12n.raylib-ios.scenes.doom :as doom]
@@ -97,7 +97,7 @@
     (is (empty? stray) (str "category entries that are not scenes: " (vec stray)))))
 
 (deftest every-scene-has-a-draw-method
-  (let [have (set (keys (methods du/draw-scene!)))
+  (let [have (set (keys (methods draw/draw-scene!)))
         missing (remove have scene-ids)]
     (is (empty? missing) (str "scenes with no draw-scene! method: " (vec missing)))))
 
@@ -174,7 +174,7 @@
 (deftest geoshapes-cache-is-keyed-on-the-screen
   ;; host-measure calls MeasureText, which needs a window; the layout under test
   ;; only needs a width.
-  (with-redefs [du/host-measure (fn [s size] (* 0.6 size (count s)))]
+  (with-redefs [draw/host-measure (fn [s size] (* 0.6 size (count s)))]
     (let [frame @#'geoshapes-draw/geoshapes-frame
           a (frame {:frame 0} {:screen [1206 2334]})
           a2 (frame {:frame 7} {:screen [1206 2334]})
@@ -277,7 +277,7 @@
                  (chk nm types args)
                  (swap! probe update-in [:balance k] (fnil + 0) d)
                  nil))]
-    (with-redefs [du/host-measure (fn [s size] (int (* 0.6 size (count s))))
+    (with-redefs [draw/host-measure (fn [s size] (int (* 0.6 size (count s))))
                   host/clear-background (stub :clear-background [:uint] nil)
                   host/draw-text (stub :draw-text [:string :int :int :int :uint] nil)
                   host/draw-circle (stub :draw-circle [:int :int :float :uint] nil)
@@ -441,7 +441,7 @@
        (let [gs (gallery/run-frame registry gs (frame-input i))
              _ (swap! probe assoc :balance {} :last-bound nil :fbo sdl-fbo :scissor true)
              _ (reset! (:model @probe) @(gl/fresh))
-             err (try (du/draw-scene! id (:scene-state gs) (draw-args i))
+             err (try (draw/draw-scene! id (:scene-state gs) (draw-args i))
                       nil
                       (catch :default e (str (or (ex-message e) e))))
              bal (:balance @probe)
@@ -532,7 +532,7 @@
         frames (atom 0)
         inside (atom [])
         after-target (atom [])]
-    (defmethod du/draw-scene! id [_ _ _]
+    (defmethod draw/draw-scene! id [_ _ _]
       (let [n (swap! frames inc)]
         (host/rl-push-matrix)
         (host/rl-translatef 0.0 162.0 0.0)
@@ -565,7 +565,7 @@
             (is (every? #{sdl-fbo} @after-target)
                 "the screen is bound right after target! creates or replaces one"))))
       (finally
-        (remove-method du/draw-scene! id)))))
+        (remove-method draw/draw-scene! id)))))
 
 (deftest the-blend-draws-end-the-mode-when-a-draw-throws
   ;; A draw call that throws inside the blend must not leave the mode begun, or
@@ -590,10 +590,10 @@
                            (case thrower
                              :rl-vertex-2f
                              (with-redefs [host/rl-vertex-2f boom]
-                               (du/draw-scene! id (:scene-state gs) (draw-args 15)))
+                               (draw/draw-scene! id (:scene-state gs) (draw-args 15)))
                              :draw-circle
                              (with-redefs [host/draw-circle boom]
-                               (du/draw-scene! id (:scene-state gs) (draw-args 15))))
+                               (draw/draw-scene! id (:scene-state gs) (draw-args 15))))
                            false
                            (catch :default _ true))]
               (is threw? (str id " did not reach the redefined " thrower))
@@ -623,7 +623,7 @@
         states (reductions (fn [st input] (first ((:update (doom/scene)) st input)))
                            start (cons press (repeat 30 (hold -200.0))))
         per-frame (atom [])]
-    (with-redefs [du/host-measure (fn [s size] (* 0.6 size (count s)))
+    (with-redefs [draw/host-measure (fn [s size] (* 0.6 size (count s)))
                   host/draw-rectangle (bump :rect)
                   host/draw-text (bump :text)
                   host/draw-circle (bump :circle)
@@ -633,11 +633,11 @@
                   host/clear-background (fn [& _] nil)]
       (doseq [st states]
         (reset! counts (zipmap (keys @counts) (repeat 0)))
-        (du/draw-scene! :doom st {:m m
-                                  :safe {:x 0
-                                         :y 0
-                                         :width 1206
-                                         :height 2334}})
+        (draw/draw-scene! :doom st {:m m
+                                    :safe {:x 0
+                                           :y 0
+                                           :width 1206
+                                           :height 2334}})
         (swap! per-frame conj @counts)))
     (is (= 32 (count @per-frame)) "every frame completed")
     (testing "plausible counts a frame: view rects plus 96 minimap cells and the bar, 7 texts, a crosshair and heading line, circles for imps, player, button and a held stick"
@@ -676,7 +676,7 @@
                                                           (fn [& args]
                                                             (swap! begins inc)
                                                             (apply orig args)))]
-                      (du/draw-scene! :toplights st (draw-args 0)))
+                      (draw/draw-scene! :toplights st (draw-args 0)))
                     @factors)]
         (testing "one dirty light: its MIN, its MAX, then the master's MIN"
           (is (= [0] (:dirty state)))
@@ -720,7 +720,7 @@
             three (-> state
                       (update :lights conj (first (:lights state)) (first (:lights state)))
                       (assoc :dirty [0 1 2]))
-            draw! (fn [st] (du/draw-scene! :toplights st (draw-args 0)))
+            draw! (fn [st] (draw/draw-scene! :toplights st (draw-args 0)))
             ids (fn [] (into {} (map (fn [[k v]] [k (:gl-id v)])) (texture/resident)))]
         (draw! three)
         (let [before (ids)]
