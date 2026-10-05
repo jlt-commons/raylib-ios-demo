@@ -1,0 +1,6 @@
+;; Classpath from deps.edn only. With bb.edn present clojure-lsp also runs
+;; `bb print-deps`, which needs bb on PATH (CI's JVM job has none) and fails
+;; there, and format/clean-ns then exit 1. The tasks' own code is linted by
+;; `bb lint`, not by clojure-lsp.
+{:project-specs [{:project-path "deps.edn"
+                  :classpath-cmd ["clojure" "-A:dev:test" "-Spath"]}]}
