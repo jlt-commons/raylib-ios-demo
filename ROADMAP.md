@@ -159,10 +159,6 @@ Still blocked, and what each waits on:
 - **Pin raylib-ios by sha.** `common/deps.edn` points at a checkout beside this
   one until raylib-ios is pushed. Then it takes a `:git/url` and a `:git/sha`,
   and CI stops checking out a second repository.
-- **The gallery takes its scenes from the registry.** raylib-ios's shell still
-  builds its own list, and the registry test holds the two equal. When the shell
-  takes a registry, `gallery/src/.../gallery/app.clj` hands it
-  `registry/scenes` and `registry/categories`.
 
 ## Done
 

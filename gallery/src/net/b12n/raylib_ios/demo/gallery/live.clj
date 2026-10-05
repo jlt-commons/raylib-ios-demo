@@ -2,8 +2,8 @@
 (ns net.b12n.raylib-ios.demo.gallery.live
   "The gallery as a dev app, with an nREPL listening on the phone."
   (:require
-   [net.b12n.raylib-ios.demo.gallery.registry]
+   [net.b12n.raylib-ios.demo.gallery.registry :as registry]
    [net.b12n.raylib-ios.live :as live]))
 
 (defn -main [& _]
-  (live/-main))
+  (live/live-run! registry/gallery))

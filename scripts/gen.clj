@@ -281,32 +281,38 @@
                                 (str/join "\n             " (map #(str/join " " %)
                                                                  (partition-all 6 (for [e entries :when (= id (:category e))] (str ":" (seg e))))))
                                 "]}")))
-         "])\n")))
+         "])\n"
+         "\n"
+         "(def gallery\n"
+         "  \"What raylib-ios's gallery shell takes: `(gallery/run! registry/gallery)`.\"\n"
+         "  {:scenes scenes\n"
+         "   :categories categories})\n")))
 
 (defn- gallery-app-clj []
   (str generated-header
        "(ns " demo-ns ".gallery.app\n"
        "  \"The gallery as an app: every scene behind a two-level menu.\n"
        "\n"
-       "  The registry namespace loads every scene and draw namespace. The menu itself is\n"
-       "  raylib-ios's gallery shell.\"\n"
+       "  The registry namespace loads every scene and draw namespace and holds the\n"
+       "  scenes and categories. The menu itself is raylib-ios's gallery shell, which\n"
+       "  takes them as data.\"\n"
        "  (:require\n"
-       "   [" demo-ns ".gallery.registry]\n"
+       "   [" demo-ns ".gallery.registry :as registry]\n"
        "   [net.b12n.raylib-ios.gallery :as gallery]))\n"
        "\n"
        "(defn -main [& _]\n"
-       "  (gallery/-main))\n"))
+       "  (gallery/run! registry/gallery))\n"))
 
 (defn- gallery-live-clj []
   (str generated-header
        "(ns " demo-ns ".gallery.live\n"
        "  \"The gallery as a dev app, with an nREPL listening on the phone.\"\n"
        "  (:require\n"
-       "   [" demo-ns ".gallery.registry]\n"
+       "   [" demo-ns ".gallery.registry :as registry]\n"
        "   [net.b12n.raylib-ios.live :as live]))\n"
        "\n"
        "(defn -main [& _]\n"
-       "  (live/-main))\n"))
+       "  (live/live-run! registry/gallery))\n"))
 
 (defn- check-clj [entries]
   (let [nss (sort (concat [(str demo-ns ".gallery.app")] (map app-ns (projects entries))))]

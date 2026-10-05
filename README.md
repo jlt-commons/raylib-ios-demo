@@ -75,8 +75,9 @@ holds its own scene and nothing else.
 The gallery's registry, `gallery/src/.../gallery/registry.clj`, is written by `bb gen`
 from `demos.edn`. It requires every scene and every draw namespace, so each
 `draw-scene!` method is registered, and lists the scenes and categories in order.
-Until raylib-ios's shell takes a registry, the menu itself still comes from the shell's own
-list, and a test holds the two equal.
+The gallery app hands them to raylib-ios's shell as data, `(gallery/run! registry/gallery)`,
+and the dev variant does the same through `live/live-run!`. The shell holds no scene of its
+own beyond Hello.
 
 ## Tests and gates
 

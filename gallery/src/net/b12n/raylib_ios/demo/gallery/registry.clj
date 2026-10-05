@@ -453,3 +453,8 @@
     :title "Games"
     :scenes [:flappy-bird :breakout :snake :game2048 :minesweeper :pong
              :invaders :tetris :asteroids :survivors :pacman]}])
+
+(def gallery
+  "What raylib-ios's gallery shell takes: `(gallery/run! registry/gallery)`."
+  {:scenes scenes
+   :categories categories})

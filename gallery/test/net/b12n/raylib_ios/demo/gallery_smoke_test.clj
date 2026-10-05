@@ -117,7 +117,7 @@
                               (input :idle nil))
         result (let [w (java.io.StringWriter.)]
                  (binding [*out* w]
-                   (#'rg/guard-scene s :analog (fn [] (throw (ex-info "boom" {}))))))]
+                   (rg/guard-scene s :analog (fn [] (throw (ex-info "boom" {}))))))]
     (is (= :scene (:mode s)))
     (is (= :gallery (:mode result)))
     (is (nil? (:active-scene-id result)))
@@ -127,25 +127,25 @@
 (deftest a-scene-that-throws-on-open-stays-on-the-list
   (let [result (let [w (java.io.StringWriter.)]
                  (binding [*out* w]
-                   (#'rg/guard-scene gallery/initial-gallery-state :analog
-                                     (fn [] (throw (ex-info "boom" {}))))))]
+                   (rg/guard-scene gallery/initial-gallery-state :analog
+                                   (fn [] (throw (ex-info "boom" {}))))))]
     (is (= :gallery (:mode result)))))
 
 (deftest a-scene-that-does-not-throw-is-untouched
-  (is (= :next (#'rg/guard-scene gallery/initial-gallery-state :analog (fn [] :next)))))
+  (is (= :next (rg/guard-scene gallery/initial-gallery-state :analog (fn [] :next)))))
 
 (deftest the-failure-line-names-the-scene-that-was-being-opened
   (let [out (with-out-str
-              (#'rg/guard-scene gallery/initial-gallery-state :analog
-                                (fn [] (throw (ex-info "boom" {})))))]
+              (rg/guard-scene gallery/initial-gallery-state :analog
+                              (fn [] (throw (ex-info "boom" {})))))]
     (is (= "gallery: :analog failed, back to the list: boom\n" out))))
 
 (deftest the-failure-line-has-a-detail-when-the-exception-has-no-message
   ;; Under jolt (NullPointerException.) has a nil ex-message.
   (let [e (NullPointerException.)
         out (with-out-str
-              (#'rg/guard-scene gallery/initial-gallery-state :analog
-                                (fn [] (throw e))))
+              (rg/guard-scene gallery/initial-gallery-state :analog
+                              (fn [] (throw e))))
         detail (second (re-find #"back to the list: (.*)\n" out))]
     (is (nil? (ex-message e)))
     (is (seq detail) out)))
@@ -160,7 +160,7 @@
   scrolled to 300 and is now at y 700, in the given mode."
   [mode]
   (let [drag (scroll/begin-drag 300 [600 1000])]
-    (#'rg/next-scroll mode (scroll/drag-to drag [600 700]) [600 700] :down 300 tall-list)))
+    (rg/next-scroll mode (scroll/drag-to drag [600 700]) [600 700] :down 300 tall-list)))
 
 (deftest a-drag-in-a-scene-leaves-the-list-scroll-alone
   ;; Swipe games drag all the time. The list is hidden behind the scene, and

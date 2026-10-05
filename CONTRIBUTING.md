@@ -15,6 +15,21 @@ A scene is a sub-project, and `demos.edn` lists it. Everything else is generated
    - `src/net/b12n/raylib_ios/scenes/<id>/draw.clj`, which `defmethod`s `draw-scene!`
      from `net.b12n.raylib-ios.gallery.draw-util`.
    - `test/net/b12n/raylib_ios/scenes/<id>_test.cljc`.
+   Three habits from the ports so far:
+   - **Frame-locked speeds.** The originals move by a fixed step per frame, so a
+     port scales that step to the screen. Scale each axis by its own dimension when
+     the motion is bound to an axis, as `breakout`, `pong` and `invaders` do, and
+     use one factor when direction matters, such as thrust along a heading:
+     `asteroids` uses the geometric mean of the two axes. Cap the per-frame step
+     below what a hit test needs, so nothing tunnels.
+   - **Prefer properties over golden values** in the test: that a rotation preserves
+     length, that slices tile a circle exactly, that a trail stays bounded.
+   - **Test the first frame.** A scene once crashed asking for element 0 of an empty
+     buffer, past 1400 assertions, because every test called `advance` before
+     looking at anything.
+   The platform helpers a scene can use (text measuring, textures, render targets,
+   software 3D, the camera, the thumb-stick) are described in raylib-ios's
+   CONTRIBUTING.
 2. **Add a line to `demos.edn`.** The name (the directory), the id, the category
    (`generative`, `fractals`, `toys` or `games`), the title, a description of 49
    characters at most, and where it comes from. The order of the file is the

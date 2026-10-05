@@ -2,11 +2,12 @@
 (ns net.b12n.raylib-ios.demo.gallery.app
   "The gallery as an app: every scene behind a two-level menu.
 
-  The registry namespace loads every scene and draw namespace. The menu itself is
-  raylib-ios's gallery shell."
+  The registry namespace loads every scene and draw namespace and holds the
+  scenes and categories. The menu itself is raylib-ios's gallery shell, which
+  takes them as data."
   (:require
-   [net.b12n.raylib-ios.demo.gallery.registry]
+   [net.b12n.raylib-ios.demo.gallery.registry :as registry]
    [net.b12n.raylib-ios.gallery :as gallery]))
 
 (defn -main [& _]
-  (gallery/-main))
+  (gallery/run! registry/gallery))

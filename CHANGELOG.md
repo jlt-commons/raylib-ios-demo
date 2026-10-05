@@ -21,3 +21,6 @@
 - The three carried scenes are identical to the Android experiment apart from
   namespace names and whitespace. The identity check for them moved with them.
 - Device builds need jolt v0.8.15. See the README.
+- The gallery app hands its registry to raylib-ios's shell with `gallery/run!`, so the
+  menu lists the registry's scenes and categories and nothing else. The smoke test calls
+  the shell's `guard-scene` and `next-scroll`, which are public now.
