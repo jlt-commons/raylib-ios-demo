@@ -1,0 +1,23 @@
+# jolt's classpath cache, created by any jolt run
+.jolt/
+
+# the built iOS app, in every sub-project: the plist is copied in, the binary is compiled
+RaylibIOS.app
+
+# editor and tool state
+.DS_Store
+.lsp/.cache/
+.clj-kondo/.cache/
+.clj-kondo/imports/
+.cpcache/
+.nrepl-history
+.nrepl-port
+.remember/
+
+# docs-engine build output and a local engine checkout
+_site/
+.docs-engine/
+
+# agent guides, symlinked from a private notes store; a committed link would dangle in every other clone
+CLAUDE.md
+AGENTS.md

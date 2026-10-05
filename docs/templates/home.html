@@ -1,0 +1,421 @@
+{% extends "base.html" %}
+{% block title %}raylib-ios-demo: the raylib examples on an iPhone, from Clojure{% endblock %}
+{% block body-class %}home{% endblock %}
+
+{% block content %}
+<header class="hero">
+  <div class="hero-inner">
+    <h1>The raylib examples, on an iPhone, from Clojure</h1>
+    <p class="tagline">
+      A gallery of a hundred and thirty-seven scenes, all measured running at <strong>52 to 60 fps on an iPhone 17 Pro</strong> (one dips to 31 in its heaviest view),
+      drawn by raylib 6.0 over SDL2, driven by <strong>Jolt</strong> (Clojure on
+      Chez Scheme) as threaded portable bytecode. No JIT, nothing generated at
+      run time, and no dependencies.
+    </p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{{site-base}}/guide/porting-an-example.html">Read the guide</a>
+    </div>
+  </div>
+</header>
+
+<section id="how" class="surface">
+  <div class="inner">
+    <h2>raylib has no iOS backend, and does not need one</h2>
+    <p>
+      This is how <a href="https://github.com/jlt-commons/raylib-ios">raylib-ios</a>, the
+      platform these scenes run on, gets raylib onto the phone.
+    </p>
+    <p>
+      raylib 6.0 ships platform layers for Android, GLFW, RGFW, SDL, Win32, DRM
+      and web. There is no <code>rcore_ios.c</code>, and writing one means a
+      UIWindow, a GLES layer, touch handling and a loop: several hundred lines
+      of Objective-C.
+    </p>
+    <p>
+      The shortcut is SDL. Built <code>PLATFORM=SDL</code> with
+      <code>GRAPHICS_API_OPENGL_ES2</code> against an SDL2 compiled for iOS,
+      <strong>SDL's own iOS support becomes the platform layer</strong>, which
+      collapses the whole problem to "build SDL". Both libraries then go into
+      the executable as static archives, because
+      <code>jolt build --target</code> emits the whole binary and Chez owns
+      <code>main</code>: there is no host process to <code>dlopen</code>
+      anything, and every <code>defcfn</code> resolves against the process
+      image at first call.
+    </p>
+  </div>
+</section>
+
+<section id="thread-zero">
+  <div class="inner">
+    <h2>Who owns thread 0</h2>
+    <p>
+      UIKit insists its window work happens on the main thread, so the whole
+      design turns on who owns it. Here the answer is our own executable, and
+      the loop is handed back to us on the thread UIKit wants.
+    </p>
+    <pre class="mermaid">
+flowchart LR
+  main["Chez owns main()<br/>thread 0"]
+  run["SDL_UIKitRunApp<br/>:blocking FFI call"]
+  uikit["UIApplicationMain<br/>SDLUIKitDelegate"]
+  cb["our :collect-safe callback<br/>= SDL_main"]
+  loop["the raylib loop<br/>InitWindow · BeginDrawing · EndDrawing"]
+  main --> run --> uikit -->|"postFinishLaunch, on thread 0"| cb --> loop
+  loop -->|"EndDrawing pumps CFRunLoop<br/>so a blocking loop is legal"| uikit
+    </pre>
+    <p>
+      A blocking <code>while</code> loop is normally wrong on iOS. It works
+      here only because <code>EndDrawing</code> reaches
+      <code>SDL_PumpEvents</code>, which spins the run loop, so UIKit gets its
+      turn every frame.
+    </p>
+  </div>
+</section>
+
+<section id="lessons" class="surface">
+  <div class="inner">
+    <h2>What the device taught us</h2>
+    <div class="feature-grid">
+      <div class="feat">
+        <h4>The FFI is not the bottleneck</h4>
+        <p>Penrose makes ~2400 FFI calls a frame at 59 fps, while a scene doing 1800 draws managed 18. The cost was <code>partition</code> and <code>map-indexed</code> in the draw loop, not the calls. Fixing that was <strong>3.5x</strong>.</p>
+      </div>
+      <div class="feat">
+        <h4>Allocation costs more than the call</h4>
+        <p>A helper returning <code>[x y]</code> allocates a vector per line. Removing a lazy sequence changed nothing until the allocation went too: 22 fps, then 47.</p>
+      </div>
+      <div class="feat">
+        <h4>Reading source is a hypothesis</h4>
+        <p>raylib's SDL platform binds no framebuffer, so it "must" draw into framebuffer 0 and show nothing. The device disagreed, and an upstream bug report was withdrawn before it was filed.</p>
+      </div>
+      <div class="feat">
+        <h4>Build --dev, or redefinition lies</h4>
+        <p>A release build inlines across call sites, so a var redefined over the nREPL updates what the REPL sees while the running loop keeps calling the original. Nothing announces the split.</p>
+      </div>
+      <div class="feat">
+        <h4>An nREPL, on the phone</h4>
+        <p>jolt's built-in server binds on iOS since <a href="https://github.com/jolt-lang/jolt/pull/829">jolt#829</a>. Read live scene state, queue work onto the main thread, and open a card without a finger.</p>
+      </div>
+      <div class="feat">
+        <h4>The simulator cannot show this</h4>
+        <p>From iOS 17.5 the simulator presents black for OpenGL ES. Pixels reach the framebuffer and nothing appears, so every picture here is hardware.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="scenes">
+  <div class="inner">
+    <h2>The gallery</h2>
+    <p>
+      Every scene is pure <code>.cljc</code> that runs on a build host with no
+      raylib, no SDL and no device, which is how they are tested. Three come
+      from the
+      <a href="https://github.com/jasalt/jolt-android-experiment">Jolt Android
+      experiment</a>, identical apart from namespace names and whitespace, and
+      written for a different platform entirely, along with three more namespaces carrying the scene contract
+      itself. The other hundred and thirty-four are ports from
+      <a href="https://github.com/jlt-commons/raylib-jlt">raylib-jlt</a>.
+    </p>
+    <div class="demo-grid">
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/spirograph.gif" alt="A hypotrochoid drawing itself in rainbow lines" loading="lazy" width="480">
+        <figcaption>spirograph &middot; 55 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
+        <img src="{{site-base}}/images/kaleidoscope.gif" alt="A stroke mirrored into six-fold symmetry" loading="lazy" width="480">
+        <figcaption>kaleidoscope &middot; 58 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/fireworks.gif" alt="Rockets bursting into falling sparks" loading="lazy" width="480">
+        <figcaption>fireworks &middot; 58 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/boids.gif" alt="Forty-five boids flocking" loading="lazy" width="480">
+        <figcaption>boids &middot; 52 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/flappy-bird.png">
+        <img src="{{site-base}}/images/flappy-bird.gif" alt="Flappy Bird, flapped by a loop inside the app" loading="lazy" width="480">
+        <figcaption>flappy-bird &middot; unchanged from Android</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/pendulum.gif" alt="A chaotic double pendulum tracing its path" loading="lazy" width="480">
+        <figcaption>double-pendulum &middot; 59 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/epicycles.gif" alt="Fourier epicycles drawing a square wave" loading="lazy" width="480">
+        <figcaption>fourier-epicycles &middot; 59 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
+        <img src="{{site-base}}/images/tree.gif" alt="A binary fractal tree swaying" loading="lazy" width="480">
+        <figcaption>fractal-tree &middot; 59 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
+        <img src="{{site-base}}/images/stars.gif" alt="A starfield flying toward the viewer" loading="lazy" width="480">
+        <figcaption>starfield &middot; 58 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/hilbert.png">
+        <img src="{{site-base}}/images/thumbs/hilbert.png" alt="A Hilbert space-filling curve" loading="lazy" width="480">
+        <figcaption>hilbert-curve &middot; 1023 lines at 60 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/lsystem.gif" alt="An L-system plant growing segment by segment" loading="lazy" width="480">
+        <figcaption>l-system &middot; 1488 segments at 59 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
+        <img src="{{site-base}}/images/flowfield.gif" alt="Particles following a drifting flow field" loading="lazy" width="480">
+        <figcaption>flow-field &middot; 54 fps, tuned down from 32</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
+        <img src="{{site-base}}/images/lorenz.gif" alt="The Lorenz attractor, camera orbiting a 450-point trail" loading="lazy" width="480">
+        <figcaption>lorenz &middot; 58 fps, and where the budget rule broke</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/tesseract.gif" alt="A rotating 4D hypercube projected to the screen" loading="lazy" width="480">
+        <figcaption>tesseract &middot; 32 edges, the cheapest scene here</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
+        <img src="{{site-base}}/images/life.gif" alt="Conway's Game of Life on a 48 by 93 grid" loading="lazy" width="480">
+        <figcaption>life &middot; 1470 rectangles at 59 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/performance-on-a-phone.html">
+        <img src="{{site-base}}/images/automata.gif" alt="Elementary cellular automata scrolling down the screen" loading="lazy" width="480">
+        <figcaption>automata &middot; 2551 rectangles, and the budget rule rewritten</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/colorwheel.gif" alt="An HSV colour wheel drawn as an rlgl triangle fan" loading="lazy" width="480">
+        <figcaption>colour wheel &middot; the one scene that fills</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/unitcircle.gif" alt="Sine and cosine traced from a rotating radius" loading="lazy" width="480">
+        <figcaption>sine &amp; cosine &middot; the projections, and their traces</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/clock.gif" alt="A seven-segment clock showing the time" loading="lazy" width="480">
+        <figcaption>clock &middot; libc time, through the FFI</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/piechart.gif" alt="A rotating pie chart" loading="lazy" width="480">
+        <figcaption>pie chart &middot; 62 triangles, sized per wedge</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/logoanim.gif" alt="raylib's logo assembling itself" loading="lazy" width="480">
+        <figcaption>raylib logo &middot; nothing eased, on purpose</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/easings.gif" alt="Fifteen easing curves plotted and running on one clock" loading="lazy" width="480">
+        <figcaption>easings &middot; all fifteen curves, one clock</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/balls.gif" alt="Balls falling and bouncing under gravity" loading="lazy" width="480">
+        <figcaption>ball physics &middot; restarts when everything settles</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/sequence.gif" alt="A shuffled sequence of coloured bars" loading="lazy" width="480">
+        <figcaption>random sequence &middot; a permutation, not draws</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/scene-catalog.html">
+        <img src="{{site-base}}/images/analog.gif" alt="An analog clock face with bezel, sixty ticks and three sweeping hands" loading="lazy" width="480">
+        <figcaption>analog &middot; rlgl stands in for DrawRing</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/touchball.png">
+        <img src="{{site-base}}/images/thumbs/touchball.png" alt="A green ball under a finger" loading="lazy" width="480">
+        <figcaption>touch ball &middot; follows a finger, green while held</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/rlgltriangle.png">
+        <img src="{{site-base}}/images/thumbs/rlgltriangle.png" alt="A triangle shaded red, green and blue at its corners, one corner mid-drag" loading="lazy" width="480">
+        <figcaption>rlgl triangle &middot; a colour per vertex, corners you drag</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/particles.png">
+        <img src="{{site-base}}/images/thumbs/particles.png" alt="A plume of grey smoke rising from a finger, 324 particles" loading="lazy" width="480">
+        <figcaption>particles &middot; smoke, 324 live at 59 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/breakout.png">
+        <img src="{{site-base}}/images/thumbs/breakout.png" alt="Breakout mid-game, one brick gone and the ball in flight" loading="lazy" width="480">
+        <figcaption>breakout &middot; the paddle follows a finger</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/deltatime.png">
+        <img src="{{site-base}}/images/thumbs/deltatime.png" alt="Two small boxes, one moved per frame and one by delta time, already apart" loading="lazy" width="480">
+        <figcaption>delta time &middot; apart at 58 fps without being asked</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/randomvalues.png">
+        <img src="{{site-base}}/images/thumbs/randomvalues.png" alt="A large number 84 with the recent rolls listed below it" loading="lazy" width="480">
+        <figcaption>random values &middot; seeded, the LCG's high bits</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/formattext.png">
+        <img src="{{site-base}}/images/thumbs/formattext.png" alt="A zero-padded score and an MM:SS timer" loading="lazy" width="480">
+        <figcaption>formatted text &middot; padded without format</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/strip.png">
+        <img src="{{site-base}}/images/thumbs/strip.png" alt="Sixteen coloured bands running from cyan through yellow to near black" loading="lazy" width="480">
+        <figcaption>triangle strip &middot; 32 triangles, winding fixed by draw-triangle</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/survivors.png">
+        <img src="{{site-base}}/images/thumbs/survivors.png" alt="Vampire Survivors mid-wave, the hero in a corner with red enemies closing in and green gems on the floor" loading="lazy" width="480">
+        <figcaption>vampire survivors &middot; a thumb-stick, 58 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/pacman.png">
+        <img src="{{site-base}}/images/thumbs/pacman.png" alt="Pac-Man in a blue maze with four ghosts, score 120" loading="lazy" width="480">
+        <figcaption>pac-man &middot; swipes queue the turn, 58 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/hello.png">
+        <img src="{{site-base}}/images/thumbs/hello.png" alt="One dark grey line, Congrats! You created your first window!" loading="lazy" width="480">
+        <figcaption>basic window &middot; one line, fitted to the width</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/nudge.png">
+        <img src="{{site-base}}/images/thumbs/nudge.png" alt="A red ball moved down from the caption with a thumb-stick" loading="lazy" width="480">
+        <figcaption>keyboard ball &middot; a thumb-stick for the arrow keys</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/wheelbox.png">
+        <img src="{{site-base}}/images/thumbs/wheelbox.png" alt="A red square dragged down the screen" loading="lazy" width="480">
+        <figcaption>mouse wheel &middot; a vertical drag for the wheel</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/undoredo.png">
+        <img src="{{site-base}}/images/thumbs/undoredo.png" alt="A grid with a grey trail ending in a blue square, the history strip below and undo and redo buttons at the bottom" loading="lazy" width="480">
+        <figcaption>undo redo &middot; buttons for the shortcuts</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/strings.png">
+        <img src="{{site-base}}/images/thumbs/strings.png" alt="Three text particles, a sentence cut and shaken apart, with shatter, shake and case buttons" loading="lazy" width="480">
+        <figcaption>strings management &middot; cut, then shaken</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/resize.png">
+        <img src="{{site-base}}/images/thumbs/resize.png" alt="A rectangle resized by dragging its corner handle" loading="lazy" width="480">
+        <figcaption>resize &middot; a sticky grab</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/align.png">
+        <img src="{{site-base}}/images/thumbs/align.png" alt="One word placed left, centre and right inside three boxes" loading="lazy" width="480">
+        <figcaption>text alignment &middot; from MeasureText</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/clipbox.png">
+        <img src="{{site-base}}/images/thumbs/clipbox.png" alt="A coloured grid visible only inside a moving box" loading="lazy" width="480">
+        <figcaption>scissor &middot; a scene clipping inside the safe area</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/fan.png">
+        <img src="{{site-base}}/images/thumbs/fan.png" alt="Sixteen coloured spokes, each a different thickness" loading="lazy" width="480">
+        <figcaption>line widths &middot; sixteen, thinnest at the top</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/bezier.png">
+        <img src="{{site-base}}/images/thumbs/bezier.png" alt="A cubic Bezier with its control polygon, following a finger" loading="lazy" width="480">
+        <figcaption>bezier &middot; follows your finger</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/bars.png">
+        <img src="{{site-base}}/images/thumbs/bars.png" alt="Five bars with different rounding on each end, each filled with a gradient" loading="lazy" width="480">
+        <figcaption>rounded bars &middot; one loop, square to lozenge</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/vecangle.png">
+        <img src="{{site-base}}/images/thumbs/vecangle.png" alt="Two arms from one origin with the signed angle between them filled" loading="lazy" width="480">
+        <figcaption>vector angle &middot; the sign is visible</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/rounded.png">
+        <img src="{{site-base}}/images/thumbs/rounded.png" alt="A rectangle with quarter-circle corners" loading="lazy" width="480">
+        <figcaption>rounded rect &middot; decomposed, not bound</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/splines.png">
+        <img src="{{site-base}}/images/thumbs/splines.png" alt="Three spline bases drawn over the same five control points" loading="lazy" width="480">
+        <figcaption>splines &middot; three bases, same points</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/ring.png">
+        <img src="{{site-base}}/images/thumbs/ring.png" alt="A stroked annulus whose sweep and inner radius breathe" loading="lazy" width="480">
+        <figcaption>ring drawing &middot; an rlgl annulus</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/gradient.png">
+        <img src="{{site-base}}/images/thumbs/gradient.png" alt="Four gradient bands, vertical, horizontal, four-corner and turning" loading="lazy" width="480">
+        <figcaption>gradients &middot; a colour at every corner</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/clockgrid.png">
+        <img src="{{site-base}}/images/thumbs/clockgrid.png" alt="The time spelled out by a grid of little clock faces" loading="lazy" width="480">
+        <figcaption>clock of clocks &middot; 144 faces, 288 hands</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/palette.png">
+        <img src="{{site-base}}/images/thumbs/palette.png" alt="All twenty-five colours raylib names, as labelled swatches" loading="lazy" width="480">
+        <figcaption>colours &middot; every one raylib names</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/sector.png">
+        <img src="{{site-base}}/images/thumbs/sector.png" alt="A pie slice drawn with eight segments, showing its polygon edges" loading="lazy" width="480">
+        <figcaption>circle sector &middot; raylib's segment floor</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/multitouch.png">
+        <img src="{{site-base}}/images/thumbs/multitouch.png" alt="Four fingers on the screen, each drawn in its own colour with its raylib id" loading="lazy" width="480">
+        <figcaption>multitouch &middot; four real fingers, four ids</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/scene-catalog.html">
+        <img src="{{site-base}}/images/bullets.gif" alt="A three-armed spiral of gold bullets leaving a red emitter" loading="lazy" width="480">
+        <figcaption>bullets &middot; straight lines from a turning source</figcaption>
+      </a>
+      <a class="demo" href="https://jlt-commons.github.io/raylib-ios/guide/the-safe-area.html">
+        <img src="{{site-base}}/images/collision.gif" alt="A blue box and a yellow box, their overlap picked out in red" loading="lazy" width="480">
+        <figcaption>collision &middot; follows a finger</figcaption>
+      </a>
+      <a class="demo" href="https://jlt-commons.github.io/raylib-ios/guide/the-safe-area.html">
+        <img src="{{site-base}}/images/dashed.gif" alt="A dashed line from a red hub to a moving target" loading="lazy" width="480">
+        <figcaption>dashed &middot; equal dashes along the unit vector</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/angles.gif" alt="A ring of spokes with one turning" loading="lazy" width="480">
+        <figcaption>angles &middot; the two lines the rest are built from</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/guide/porting-an-example.html">
+        <img src="{{site-base}}/images/writing.gif" alt="A message typing itself out one character at a time" loading="lazy" width="480">
+        <figcaption>writing &middot; the only scene that animates text</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/penrose.png">
+        <img src="{{site-base}}/images/thumbs/penrose.png" alt="A Penrose P3 tiling by deflation" loading="lazy" width="480">
+        <figcaption>penrose &middot; 57 fps</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/following-eyes.png">
+        <img src="{{site-base}}/images/thumbs/following-eyes.png" alt="Two eyes whose pupils follow a finger" loading="lazy" width="480">
+        <figcaption>following-eyes &middot; unchanged from Android</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/touch-trail.png">
+        <img src="{{site-base}}/images/thumbs/touch-trail.png" alt="A fading trail following the primary pointer" loading="lazy" width="480">
+        <figcaption>touch-trail &middot; unchanged from Android</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/gallery.png">
+        <img src="{{site-base}}/images/thumbs/gallery.png" alt="The category screen, showing Generative, Fractals, Toys and Games" loading="lazy" width="480">
+        <figcaption>the gallery &middot; four categories</figcaption>
+      </a>
+      <a class="demo" href="{{site-base}}/images/gallery-scenes.png">
+        <img src="{{site-base}}/images/thumbs/gallery-scenes.png" alt="The scene list inside Toys, twenty cards in two columns" loading="lazy" width="480">
+        <figcaption>and inside one &middot; twenty scenes under Toys</figcaption>
+      </a>
+    </div>
+    <p>
+      generative 6 &middot; fractals 3 &middot; toys 5 &middot; games 1 &middot; three of them identical to the
+      Android originals apart from names and whitespace. <em>Every one came off the phone unattended, the moving
+      ones recorded from a live iPhone Mirroring window. Nobody touched the
+      device for any of them: Flappy Bird is flapped by a loop running inside
+      the app, started from the nREPL. The bezel is the mirror's own.</em>
+    </p>
+
+    <table>
+      <thead><tr><th>Scene</th><th>Per frame</th><th>fps</th></tr></thead>
+      <tbody>
+        <tr><td>Kaleidoscope</td><td>708 lines</td><td>58</td></tr>
+        <tr><td>Fireworks</td><td>~120 circles</td><td>58</td></tr>
+        <tr><td>Penrose</td><td>340 triangles, ~2400 FFI calls</td><td>57</td></tr>
+        <tr><td>Spirograph</td><td>~1000 lines</td><td>55</td></tr>
+        <tr><td>Boids</td><td>2025 distance tests</td><td>52</td></tr>
+        <tr><td>Flappy Bird, Following Eyes, Touch Trail</td><td>identical to Android apart from names and whitespace</td><td>58</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="quickstart" class="surface">
+  <div class="inner">
+    <h2>Quickstart</h2>
+    <pre><code class="sh">bb doctor                                  # jolt, raylib-ios and the toolchain
+bb test                                    # every scene's tests, no device needed
+UDID=... bb gallery                        # the 137-scene app, signed, installed, launched
+UDID=... bb asteroids                      # one scene as an app of its own
+
+UDID=... bb live asteroids                 # the same scene with an nREPL on the phone
+jolt proxy                                 # forward it over USB</code></pre>
+    <p>
+      Needs a checkout of raylib-ios beside this one, jolt (the README names the
+      version that builds device images), Chez Scheme 10.4.1 on <code>PATH</code>
+      as <code>chez</code>, Xcode, cmake, and a paired iPhone.
+    </p>
+  </div>
+</section>
+{% endblock %}

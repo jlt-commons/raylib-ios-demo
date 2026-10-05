@@ -1,0 +1,182 @@
+name: CI
+
+# ---------------------------------------------------------------------------
+# The pure half, on every push and pull request. The iOS half is not here, for
+# the reasons raylib-ios gives: building the app needs a macOS runner, a Chez
+# cross-compiler, raylib and SDL2 compiled for the device and a signing identity,
+# and nothing in CI can put a frame on a phone.
+#
+# common/deps.edn points at a raylib-ios checkout beside this one. Until raylib-ios
+# is pushed and pinned by :git/sha there, this workflow checks both repositories
+# out side by side under the workspace, which is where ../../raylib-ios from
+# common/ lands. Pinning removes the second checkout.
+# ---------------------------------------------------------------------------
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      jolt-version:
+        description: "jolt to test under (blank = the pinned JOLT_VERSION below)"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+# Pinned rather than floating, so a release published overnight cannot turn CI red
+# on a tree nobody touched. The jolt pin matches raylib-ios's. clj-kondo is the one
+# that matters most: a new lint rule arriving on its own schedule would fail a gate
+# set to --fail-level warning, on code that has not changed.
+env:
+  JOLT_VERSION: ${{ inputs.jolt-version || '0.8.6' }}
+  CLOJURE_VERSION: 1.12.6.1673
+  BB_VERSION: 1.12.196
+  CLJ_KONDO_VERSION: "2026.08.04"
+  SHELLCHECK_VERSION: v0.9.0
+
+defaults:
+  run:
+    working-directory: raylib-ios-demo
+
+jobs:
+  checks:
+    name: doctor · generated files · lint · load every app
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          path: raylib-ios-demo
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: jlt-commons/raylib-ios
+          path: raylib-ios
+
+      - name: Install jolt
+        run: |
+          set -euo pipefail
+          : "${JOLT_VERSION:?empty; the workflow-level pin did not resolve}"
+          curl -sSL https://raw.githubusercontent.com/jolt-lang/jolt/main/install \
+            | bash -s -- --version "$JOLT_VERSION"
+          jolt --version
+
+      - uses: DeLaGuardo/setup-clojure@13.6.1
+        with:
+          bb: ${{ env.BB_VERSION }}
+          clj-kondo: ${{ env.CLJ_KONDO_VERSION }}
+
+      # jolt, raylib-ios with its tools/ios, demos.edn. The Xcode and UDID lines are
+      # advisory and print as notes on Linux.
+      - name: Doctor
+        run: bb doctor
+
+      # The root deps.edn, the sub-projects, the registry and the tasks are all
+      # built from demos.edn. A scene added without `bb gen` fails here.
+      - name: Generated files match demos.edn
+        run: |
+          bb gen --check || {
+            echo "::error title=generated files out of date::run bb gen and commit the result"
+            exit 1
+          }
+
+      - name: clj-kondo
+        run: bb lint:strict
+
+      # Loads every scene's app namespace and the gallery's, with no window.
+      - name: Load every app namespace
+        run: bb check
+
+  jolt:
+    name: tests on jolt ${{ inputs.jolt-version || '0.8.6' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          path: raylib-ios-demo
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: jlt-commons/raylib-ios
+          path: raylib-ios
+
+      - name: Install jolt
+        run: |
+          set -euo pipefail
+          curl -sSL https://raw.githubusercontent.com/jolt-lang/jolt/main/install \
+            | bash -s -- --version "$JOLT_VERSION"
+          jolt --version
+
+      # bb gen --check is one of the tests, so babashka has to be there.
+      - uses: DeLaGuardo/setup-clojure@13.6.1
+        with:
+          bb: ${{ env.BB_VERSION }}
+
+      # Every scene's tests, the gallery smoke test over stubbed raylib, and the
+      # checks: gen is current, the registry holds raylib-ios's scenes, every app
+      # loads alone.
+      - name: Test under jolt
+        run: jolt -M:test
+
+  jvm:
+    name: tests on the JVM · format · ns
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          path: raylib-ios-demo
+      - uses: actions/checkout@v7.0.1
+        with:
+          repository: jlt-commons/raylib-ios
+          path: raylib-ios
+
+      - name: Install Clojure
+        uses: DeLaGuardo/setup-clojure@13.6.1
+        with:
+          cli: ${{ env.CLOJURE_VERSION }}
+
+      - uses: clojure-lsp/setup-clojure-lsp@v1.0.3
+        with:
+          clojure-lsp-version: "2026.05.05-12.58.26"
+
+      - name: Cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: |
+            ~/.m2
+            ~/.gitlibs
+          key: ${{ runner.os }}-deps-${{ hashFiles('raylib-ios-demo/deps.edn', 'raylib-ios-demo/common/deps.edn') }}
+
+      # The pure tests, plus the jasalt identity check, which needs sha256 and so
+      # runs only here.
+      - name: Test
+        run: clojure -M:test
+
+      - name: Formatting
+        run: clojure-lsp format --dry
+
+      - name: Namespace forms
+        run: clojure-lsp clean-ns --dry
+
+  shellcheck:
+    name: shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          path: raylib-ios-demo
+
+      - name: Install shellcheck ${{ env.SHELLCHECK_VERSION }}
+        run: |
+          curl -sSL "https://github.com/koalaman/shellcheck/releases/download/${SHELLCHECK_VERSION}/shellcheck-${SHELLCHECK_VERSION}.linux.x86_64.tar.xz" \
+            | tar -xJf - --strip-components=1 -C /usr/local/bin "shellcheck-${SHELLCHECK_VERSION}/shellcheck"
+          shellcheck --version
+
+      # The only shell here is the site check.
+      - name: Shellcheck
+        run: shellcheck -S warning docs/check-site.sh

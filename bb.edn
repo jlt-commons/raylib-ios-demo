@@ -1,0 +1,322 @@
+;; Task runner for raylib-ios-demo: the raylib examples as iPhone apps, one sub-project each.
+;;
+;; Run these from the repo root with EITHER `bb <task>` or `jolt <task>`. jolt
+;; reads this file as well as deps.edn, so both runners see the same tasks.
+;;
+;;   bb info               grouped cheat-sheet, every scene included
+;;   bb gallery            build the all-scenes app and install it on the phone
+;;   bb <scene>            build one scene as an app of its own, e.g. bb asteroids
+;;   bb run <scene>        the same, by argument (the scene id works too)
+;;   bb live <scene>       the same scene with an nREPL on the phone (dev builds)
+;;   bb list               flat list of scenes with descriptions
+;;   bb test [scene]       the tests: every scene's, or one sub-project's
+;;   bb check              load every app namespace, no window
+;;   bb lint [--strict]    clj-kondo over every scene (lint:strict fails on findings)
+;;   bb doctor             is jolt there, does raylib-ios resolve, is the toolchain present?
+;;   bb gen [--check]      rebuild deps.edn, the sub-projects, the registry and these tasks
+;;
+;; Installing needs the phone's hardware udid in UDID (`jolt devices` lists it),
+;; and a jolt that can build device images: see README.md.
+;;
+;; The scene list is demos.edn, edited by hand, and the per-scene tasks at the
+;; bottom are written from it by `bb gen`.
+;;
+;; NOTE: task bodies are EDN-parsed. No #"regex", no @deref, no #(...).
+{:min-bb-version "1.3.0"
+ :paths ["scripts"]
+ :tasks
+ {:requires ([babashka.fs :as fs]
+             [clojure.edn :as edn]
+             [clojure.string :as str]
+             [ios-tools])
+
+  :init
+  (do
+    ;; bb sets babashka.version, jolt sets jolt.version.
+    (def runner (if (System/getProperty "babashka.version") "bb" "jolt"))
+    (def jolt-cmd (ios-tools/jolt-cmd))
+
+    ;; [{:name :id :category :title :desc :from (:home)} ...], edited by hand.
+    (def demos (if (fs/exists? "demos.edn") (edn/read-string (slurp "demos.edn")) []))
+    (def scenes (remove :home demos))
+
+    (defn find-scene [s]
+      (first (filter (fn [d] (or (= s (:name d)) (= s (name (:id d))))) scenes)))
+
+    (defn scene-or-die [s]
+      (or (find-scene s)
+          (do (binding [*out* *err*]
+                (println (str "No scene named " s ". `" runner " list` shows them all.")))
+              (System/exit 1))))
+
+    (defn app-ns [d] (str "net.b12n.raylib-ios.scenes." (name (:id d)) ".app"))
+    (defn live-ns [d] (str "net.b12n.raylib-ios.scenes." (name (:id d)) ".live"))
+
+    (defn exit-with [exit] (ios-tools/exit-with exit))
+
+    (defn run-scene [s]
+      (let [d (scene-or-die s)] (ios-tools/run! (:name d) (app-ns d))))
+
+    (defn live-scene [s]
+      (let [d (scene-or-die s)] (ios-tools/live! (:name d) (live-ns d))))
+
+    ;; Every source root clj-kondo should see: the shared code, the scripts, the
+    ;; check namespace, the gallery and each scene listed in demos.edn.
+    (defn lint-dirs []
+      (filter fs/exists?
+              (concat ["common/src" "src" "scripts" "gallery/src" "gallery/test"]
+                      (mapcat (fn [d] [(str (:name d) "/src") (str (:name d) "/test")]) scenes))))
+
+    (defn kondo! []
+      (when-not (fs/which "clj-kondo")
+        (binding [*out* *err*]
+          (println "bb lint needs clj-kondo on PATH: https://github.com/clj-kondo/clj-kondo/blob/master/doc/install.md"))
+        (System/exit 1))
+      (:exit (apply shell {:continue true} "clj-kondo" "--lint" (lint-dirs)))))
+
+  info
+  {:doc "Grouped cheat-sheet, every scene included (start here)"
+   :task
+   (let [esc (str (char 27) "[")
+         col (fn [c s] (str esc c "m" s esc "0m"))
+         hdr (fn [s] (println (str "\n" (col "35" (str "── " s " ──")))))
+         row (fn [t d] (println (str "  " (col "36" (format "%-32s" (str runner " " t))) d)))]
+     (println (col "1;35" (str "\nraylib-ios-demo: " (count demos) " raylib scenes as iPhone apps, one sub-project each")))
+     (println (col "2" (str "  runner: " runner "   ·   both `bb <task>` and `jolt <task>` work")))
+     (hdr "Install on the phone (UDID=<hardware udid>)")
+     (row "gallery" "all scenes in one app, behind a two-level menu")
+     (row "<scene>" "one scene full screen as an app, e.g. asteroids")
+     (row "run <scene>" "the same, by argument; the scene id works too")
+     (row "live <scene>" "the same scene with an nREPL on the phone (dev)")
+     (row "gallery:live" "the gallery with an nREPL on the phone (dev)")
+     (hdr "Look")
+     (row "list" "flat list of scenes with descriptions")
+     (hdr "Verify")
+     (row "doctor" "check jolt, raylib-ios and the iOS toolchain")
+     (row "test [scene]" "every scene's tests, or one sub-project's")
+     (row "check" "load every app namespace, no window")
+     (row "lint" "clj-kondo over every scene (report only); lint:strict fails on findings")
+     (hdr "Maintenance")
+     (row "gen [--check]" "rebuild deps.edn, sub-projects, registry and tasks from demos.edn")
+     (doseq [[category title] [["generative" "Generative"] ["fractals" "Fractals"] ["toys" "Toys"] ["games" "Games"]]
+             :let [ds (filter (fn [d] (= category (:category d))) demos)]]
+       (hdr (str title " (" (count ds) ")"))
+       (doseq [d ds]
+         (row (if (:home d) (str (:name d) " (raylib-ios)") (:name d)) (or (:desc d) ""))))
+     (println (str "\n" (col "2" (str "first run: " runner " doctor, then UDID=... " runner " asteroids")))))}
+
+  list
+  {:doc "Flat list of scenes with descriptions"
+   :task (let [w (apply max (map (fn [d] (count (:name d))) demos))]
+           (doseq [d demos]
+             (println (format (str "%-" w "s  %-10s  %s") (:name d) (:category d) (or (:desc d) "")))))}
+
+  run
+  {:doc "Build one scene as an app and install it: run <scene>"
+   :override-builtin true
+   :task (if-let [name (first *command-line-args*)]
+           (exit-with (run-scene name))
+           (do (println (str "usage: " runner " run <scene>   (" runner " list shows them)"))
+               (System/exit 1)))}
+
+  live
+  {:doc "A scene with an nREPL on the phone: live <scene>"
+   :task (if-let [name (first *command-line-args*)]
+           (exit-with (live-scene name))
+           (do (println (str "usage: " runner " live <scene>   (" runner " list shows them)"))
+               (System/exit 1)))}
+
+  gallery
+  {:doc "Build the all-scenes gallery app and install it"
+   :task (exit-with (ios-tools/run! "gallery" "net.b12n.raylib-ios.demo.gallery.app"))}
+
+  gallery:live
+  {:doc "The gallery with an nREPL on the phone"
+   :task (exit-with (ios-tools/live! "gallery" "net.b12n.raylib-ios.demo.gallery.live"))}
+
+  test
+  {:doc "Every scene's tests, or one sub-project's: test [scene]"
+   :task (if-let [name (first *command-line-args*)]
+           (exit-with (ios-tools/test! (if (= name "gallery") "gallery" (:name (scene-or-die name)))))
+           (exit-with (:exit (shell {:continue true} jolt-cmd "-M:test"))))}
+
+  check
+  {:doc "Load every app namespace, no window"
+   :task (exit-with (:exit (shell {:continue true} jolt-cmd "-M:check")))}
+
+  lint
+  {:doc "clj-kondo over every scene (report only)"
+   :task (let [exit (kondo!)]
+           (println (if (zero? exit) "OK clj-kondo: no errors or warnings" "clj-kondo: see findings above")))}
+
+  lint:strict
+  {:doc "bb lint, but exit non-zero on any warning or error"
+   :task (exit-with (kondo!))}
+
+  doctor
+  {:doc "Check jolt, raylib-ios and the iOS toolchain before anything else"
+   :task (let [jolt? (fs/which jolt-cmd)
+               ios-root (when jolt?
+                          (try (ios-tools/raylib-ios-root "common")
+                               (catch Exception _ nil)))
+               ;; what a build needs, and what only a Mac with a phone has
+               required [["jolt on PATH" jolt? "install jolt: https://github.com/jolt-lang/jolt"]
+                         ["raylib-ios with tools/ios (resolved from common/deps.edn)" ios-root
+                          "common/deps.edn: does net.b12n/raylib-ios resolve? A :local/root needs the checkout beside this one."]
+                         ["demos.edn" (fs/exists? "demos.edn") "restore it from git"]]
+               advisory [["xcrun (Xcode), needed to build for the phone" (fs/which "xcrun")]
+                         ["UDID set, needed to install on the phone" (System/getenv "UDID")]]]
+           (doseq [[what ok fix] required]
+             (println (str (if ok "  ok      " "  MISSING ") what (when-not ok (str "  -> " fix)))))
+           (doseq [[what ok] advisory]
+             (println (str (if ok "  ok      " "  note    ") what (when-not ok "  (not set up here)"))))
+           (when jolt?
+             (println (str "  jolt    " (str/trim (:out (shell {:out :string :continue true} jolt-cmd "--version"))))))
+           (when ios-root
+             (println (str "  raylib-ios at " ios-root)))
+           (when-not (every? second required) (System/exit 1)))}
+
+  gen
+  {:doc "Rebuild deps.edn, the sub-projects, the registry and these tasks from demos.edn: gen [--check]"
+   :requires ([gen])
+   :task (apply gen/-main *command-line-args*)}
+
+  ;; BEGIN per-scene tasks, generated by `bb gen`
+  eyes {:doc "▶ two eyes that track your finger" :task (exit-with (run-scene "eyes"))}
+  mouse-trail {:doc "▶ a fading trail follows your finger" :task (exit-with (run-scene "mouse-trail"))}
+  flappy-bird {:doc "▶ tap to flap through the pipe gaps" :task (exit-with (run-scene "flappy-bird"))}
+  spirograph {:doc "▶ a hypotrochoid that draws itself, then resets" :task (exit-with (run-scene "spirograph"))}
+  kaleidoscope {:doc "▶ a stroke mirrored with six-fold symmetry" :task (exit-with (run-scene "kaleidoscope"))}
+  fireworks {:doc "▶ rockets and fading particle bursts" :task (exit-with (run-scene "fireworks"))}
+  penrose-tiling {:doc "▶ a Penrose P3 tiling made by deflation" :task (exit-with (run-scene "penrose-tiling"))}
+  boids {:doc "▶ a flock: separation, alignment, cohesion" :task (exit-with (run-scene "boids"))}
+  double-pendulum {:doc "▶ a chaotic double pendulum with a trail" :task (exit-with (run-scene "double-pendulum"))}
+  fourier-epicycles {:doc "▶ circles on circles that draw a square wave" :task (exit-with (run-scene "fourier-epicycles"))}
+  hilbert-curve {:doc "▶ a Hilbert curve drawn progressively" :task (exit-with (run-scene "hilbert-curve"))}
+  recursive-tree {:doc "▶ a binary fractal tree that sways" :task (exit-with (run-scene "recursive-tree"))}
+  stars {:doc "▶ a twinkling starfield" :task (exit-with (run-scene "stars"))}
+  l-system {:doc "▶ an L-system plant that grows and regrows" :task (exit-with (run-scene "l-system"))}
+  flow-field {:doc "▶ particles steered by a flow field" :task (exit-with (run-scene "flow-field"))}
+  lorenz-attractor {:doc "▶ the Lorenz attractor, re-projected each frame" :task (exit-with (run-scene "lorenz-attractor"))}
+  tesseract-view {:doc "▶ a rotating 4D hypercube" :task (exit-with (run-scene "tesseract-view"))}
+  game-of-life {:doc "▶ Conway's Game of Life, reseeded when it stalls" :task (exit-with (run-scene "game-of-life"))}
+  cellular-automata {:doc "▶ elementary cellular automata, scrolling" :task (exit-with (run-scene "cellular-automata"))}
+  color-wheel {:doc "▶ an HSV colour wheel as an rlgl triangle fan" :task (exit-with (run-scene "color-wheel"))}
+  math-sine-cosine {:doc "▶ sine and cosine as projections of a radius" :task (exit-with (run-scene "math-sine-cosine"))}
+  digital-clock {:doc "▶ a seven-segment clock from libc time" :task (exit-with (run-scene "digital-clock"))}
+  pie-chart {:doc "▶ a rotating pie chart" :task (exit-with (run-scene "pie-chart"))}
+  logo-anim {:doc "▶ the raylib logo assembling itself" :task (exit-with (run-scene "logo-anim"))}
+  easings {:doc "▶ all fifteen easing curves on one clock" :task (exit-with (run-scene "easings"))}
+  math-angle-rotation {:doc "▶ fixed spokes and one that turns" :task (exit-with (run-scene "math-angle-rotation"))}
+  writing-anim {:doc "▶ a message that types itself out" :task (exit-with (run-scene "writing-anim"))}
+  ball-physics {:doc "▶ balls under gravity" :task (exit-with (run-scene "ball-physics"))}
+  random-sequence {:doc "▶ a shuffled sequence of bars" :task (exit-with (run-scene "random-sequence"))}
+  bullet-hell {:doc "▶ a three-armed bullet spiral" :task (exit-with (run-scene "bullet-hell"))}
+  collision-area {:doc "▶ two boxes and their overlap" :task (exit-with (run-scene "collision-area"))}
+  dashed-line {:doc "▶ a dashed line to your finger" :task (exit-with (run-scene "dashed-line"))}
+  input-multitouch {:doc "▶ a circle and trail for every finger" :task (exit-with (run-scene "input-multitouch"))}
+  analog-clock {:doc "▶ a live analog clock face" :task (exit-with (run-scene "analog-clock"))}
+  clock-of-clocks {:doc "▶ the time spelled by a grid of tiny clocks" :task (exit-with (run-scene "clock-of-clocks"))}
+  circle-sector-drawing {:doc "▶ a pie slice that degrades to a triangle" :task (exit-with (run-scene "circle-sector-drawing"))}
+  colors {:doc "▶ every colour raylib names, as a grid" :task (exit-with (run-scene "colors"))}
+  gradient {:doc "▶ colour interpolated across a rectangle" :task (exit-with (run-scene "gradient"))}
+  ring-drawing {:doc "▶ a breathing annulus with a stroked outline" :task (exit-with (run-scene "ring-drawing"))}
+  splines {:doc "▶ three spline bases over five points" :task (exit-with (run-scene "splines"))}
+  rounded-rectangle {:doc "▶ a rectangle breathing from square to round" :task (exit-with (run-scene "rounded-rectangle"))}
+  vector-angle {:doc "▶ the signed angle between two vectors" :task (exit-with (run-scene "vector-angle"))}
+  rectangle-advanced {:doc "▶ per-side rounded bars with a gradient" :task (exit-with (run-scene "rectangle-advanced"))}
+  lines-bezier {:doc "▶ a cubic Bezier that follows your finger" :task (exit-with (run-scene "lines-bezier"))}
+  lines-drawing {:doc "▶ a turning fan of thick lines" :task (exit-with (run-scene "lines-drawing"))}
+  scissor-test {:doc "▶ a moving scissor box clips a grid" :task (exit-with (run-scene "scissor-test"))}
+  rectangle-scaling {:doc "▶ drag a corner handle to resize a rectangle" :task (exit-with (run-scene "rectangle-scaling"))}
+  words-alignment {:doc "▶ a word aligned left, centre and right" :task (exit-with (run-scene "words-alignment"))}
+  delta-time {:doc "▶ per-frame against delta-time movement" :task (exit-with (run-scene "delta-time"))}
+  random-values {:doc "▶ a new random number every two seconds" :task (exit-with (run-scene "random-values"))}
+  format-text {:doc "▶ a padded score and an MM:SS timer" :task (exit-with (run-scene "format-text"))}
+  triangle-strip {:doc "▶ a rainbow triangle strip" :task (exit-with (run-scene "triangle-strip"))}
+  mouse {:doc "▶ a ball that follows your finger" :task (exit-with (run-scene "mouse"))}
+  rlgl-triangle {:doc "▶ a Gouraud triangle with draggable corners" :task (exit-with (run-scene "rlgl-triangle"))}
+  particles {:doc "▶ water, smoke and fire from your fingertip" :task (exit-with (run-scene "particles"))}
+  breakout {:doc "▶ paddle, ball and bricks" :task (exit-with (run-scene "breakout"))}
+  bounce {:doc "▶ a bouncing ball; tap to pause" :task (exit-with (run-scene "bounce"))}
+  snake {:doc "▶ the classic snake, steered by swipes" :task (exit-with (run-scene "snake"))}
+  game-2048 {:doc "▶ 2048, played by swipe" :task (exit-with (run-scene "game-2048"))}
+  minesweeper {:doc "▶ tap to reveal, long press to flag" :task (exit-with (run-scene "minesweeper"))}
+  pong {:doc "▶ pong against a CPU, paddle on a finger" :task (exit-with (run-scene "pong"))}
+  space-invaders {:doc "▶ marching aliens and a one-finger ship" :task (exit-with (run-scene "space-invaders"))}
+  tetris {:doc "▶ the block-stacking puzzle by drag and tap" :task (exit-with (run-scene "tetris"))}
+  asteroids {:doc "▶ the vector shooter on four buttons" :task (exit-with (run-scene "asteroids"))}
+  input-virtual-controls {:doc "▶ an on-screen D-pad and action button" :task (exit-with (run-scene "input-virtual-controls"))}
+  starfield-effect {:doc "▶ stars flying at you, dragged faster or slower" :task (exit-with (run-scene "starfield-effect"))}
+  easings-box {:doc "▶ drop, flatten, spin, grow and fade a square" :task (exit-with (run-scene "easings-box"))}
+  easings-testbed {:doc "▶ one easing curve at a time, plotted" :task (exit-with (run-scene "easings-testbed"))}
+  rectangle-bounds {:doc "▶ word-wrapped text in a resizable box" :task (exit-with (run-scene "rectangle-bounds"))}
+  rlgl-color-wheel {:doc "▶ a hue wheel with a colour on every vertex" :task (exit-with (run-scene "rlgl-color-wheel"))}
+  logo {:doc "▶ the raylib logo, still" :task (exit-with (run-scene "logo"))}
+  text {:doc "▶ lines at several sizes and colours" :task (exit-with (run-scene "text"))}
+  inline-styling {:doc "▶ colours set inside the string itself" :task (exit-with (run-scene "inline-styling"))}
+  outlines-thickness {:doc "▶ three outlines driven by one thickness" :task (exit-with (run-scene "outlines-thickness"))}
+  shapes {:doc "▶ a static tour of the basic shapes" :task (exit-with (run-scene "shapes"))}
+  ellipse-collision {:doc "▶ two ellipses that redden when they overlap" :task (exit-with (run-scene "ellipse-collision"))}
+  basic-screen-manager {:doc "▶ a LOGO, TITLE, GAMEPLAY, ENDING flow" :task (exit-with (run-scene "basic-screen-manager"))}
+  vampire-survivors {:doc "▶ auto-fire survival with a thumb-stick" :task (exit-with (run-scene "vampire-survivors"))}
+  pacman {:doc "▶ Pac-Man, steered by swipes" :task (exit-with (run-scene "pacman"))}
+  input {:doc "▶ a ball moved with a thumb-stick" :task (exit-with (run-scene "input"))}
+  wheel {:doc "▶ a box dragged up and down" :task (exit-with (run-scene "wheel"))}
+  undo-redo {:doc "▶ a square on a grid with bounded undo" :task (exit-with (run-scene "undo-redo"))}
+  strings-management {:doc "▶ text particles you throw, cut and glue" :task (exit-with (run-scene "strings-management"))}
+  camera2d {:doc "▶ a 2D camera following a player on a skyline" :task (exit-with (run-scene "camera2d"))}
+  camera-2d-mouse-zoom {:doc "▶ a 2D camera zooming about a pinned point" :task (exit-with (run-scene "camera-2d-mouse-zoom"))}
+  camera-2d-platformer {:doc "▶ five ways for a camera to follow a player" :task (exit-with (run-scene "camera-2d-platformer"))}
+  camera-2d-split-screen {:doc "▶ two players on one grid in split screen" :task (exit-with (run-scene "camera-2d-split-screen"))}
+  input-gestures {:doc "▶ raylib's gesture recogniser, named and logged" :task (exit-with (run-scene "input-gestures"))}
+  helitorus {:doc "▶ a helix wound around a torus" :task (exit-with (run-scene "helitorus"))}
+  rotating-cube {:doc "▶ a cube turning in place" :task (exit-with (run-scene "rotating-cube"))}
+  camera-3d {:doc "▶ an orbiting 3D camera" :task (exit-with (run-scene "camera-3d"))}
+  orthographic-projection {:doc "▶ perspective against orthographic projection" :task (exit-with (run-scene "orthographic-projection"))}
+  spinning-cubes {:doc "▶ a row of cubes spinning with a phase offset" :task (exit-with (run-scene "spinning-cubes"))}
+  world-screen {:doc "▶ a 2D label pinned above a 3D cube" :task (exit-with (run-scene "world-screen"))}
+  wireframe-shapes {:doc "▶ four wireframe solids tumbling" :task (exit-with (run-scene "wireframe-shapes"))}
+  camera-3d-free {:doc "▶ a free 3D camera on two thumbs" :task (exit-with (run-scene "camera-3d-free"))}
+  yaw-pitch-roll {:doc "▶ a plane flown with three aircraft rotations" :task (exit-with (run-scene "yaw-pitch-roll"))}
+  box-collisions {:doc "▶ a cube walked across a grid of boxes" :task (exit-with (run-scene "box-collisions"))}
+  picking-3d {:doc "▶ tap a cube to pick it with a ray" :task (exit-with (run-scene "picking-3d"))}
+  waving-cubes {:doc "▶ a grid of columns rippling like water" :task (exit-with (run-scene "waving-cubes"))}
+  rlgl-solar-system {:doc "▶ a sun, Earth and Moon through nested transforms" :task (exit-with (run-scene "rlgl-solar-system"))}
+  point-cloud {:doc "▶ a cloud of points turning slowly" :task (exit-with (run-scene "point-cloud"))}
+  camera-3d-first-person {:doc "▶ a first-person walk round a yard of columns" :task (exit-with (run-scene "camera-3d-first-person"))}
+  first-person-maze {:doc "▶ a first-person maze with a minimap" :task (exit-with (run-scene "first-person-maze"))}
+  camera-3d-split-screen {:doc "▶ two players, two cameras, half a screen each" :task (exit-with (run-scene "camera-3d-split-screen"))}
+  bouncing-spheres {:doc "▶ six balls bouncing in a box" :task (exit-with (run-scene "bouncing-spheres"))}
+  bunnymark {:doc "▶ the sprite-count benchmark" :task (exit-with (run-scene "bunnymark"))}
+  background-scrolling {:doc "▶ three parallax skyline layers" :task (exit-with (run-scene "background-scrolling"))}
+  sprite-stacking {:doc "▶ forty slices faking a 3D car" :task (exit-with (run-scene "sprite-stacking"))}
+  smooth-pixelperfect {:doc "▶ a smooth pixel-perfect camera" :task (exit-with (run-scene "smooth-pixelperfect"))}
+  viewport-scaling {:doc "▶ six viewport scaling policies" :task (exit-with (run-scene "viewport-scaling"))}
+  window-letterbox {:doc "▶ a fixed picture letterboxed to any shape" :task (exit-with (run-scene "window-letterbox"))}
+  fog-of-war {:doc "▶ a tile map under a fog that lifts as you walk" :task (exit-with (run-scene "fog-of-war"))}
+  blend-modes {:doc "▶ blend modes over a night skyline" :task (exit-with (run-scene "blend-modes"))}
+  particles-blending {:doc "▶ 200 sparks, alpha against additive" :task (exit-with (run-scene "particles-blending"))}
+  billboard-rendering {:doc "▶ camera-facing billboards over a grid" :task (exit-with (run-scene "billboard-rendering"))}
+  directional-billboard {:doc "▶ a walking billboard figure seen from all sides" :task (exit-with (run-scene "directional-billboard"))}
+  textured-cube {:doc "▶ two textured cubes under an orbiting camera" :task (exit-with (run-scene "textured-cube"))}
+  geometric-shapes {:doc "▶ cubes, a sphere, cylinders, a cone, a capsule" :task (exit-with (run-scene "geometric-shapes"))}
+  basic-voxel {:doc "▶ a voxel block you walk round and hollow out" :task (exit-with (run-scene "basic-voxel"))}
+  doom {:doc "▶ a Doom-style ray caster on two thumbs" :task (exit-with (run-scene "doom"))}
+  texture-tiling {:doc "▶ one tile repeated across the screen" :task (exit-with (run-scene "texture-tiling"))}
+  srcrec-dstrec {:doc "▶ a source rectangle picks the frame, a dest scales" :task (exit-with (run-scene "srcrec-dstrec"))}
+  sprite-button {:doc "▶ one sheet, three button states" :task (exit-with (run-scene "sprite-button"))}
+  npatch-drawing {:doc "▶ nine-patch stretching with fixed corners" :task (exit-with (run-scene "npatch-drawing"))}
+  polygon-drawing {:doc "▶ a hue-wheel texture on a polygon" :task (exit-with (run-scene "polygon-drawing"))}
+  texture-procedural {:doc "▶ four procedural textures" :task (exit-with (run-scene "texture-procedural"))}
+  sprite-animation {:doc "▶ six poses cycled from one source rectangle" :task (exit-with (run-scene "sprite-animation"))}
+  textured-curve {:doc "▶ a road texture laid along a Bezier curve" :task (exit-with (run-scene "textured-curve"))}
+  render-texture {:doc "▶ a scene drawn off-screen, then reused" :task (exit-with (run-scene "render-texture"))}
+  framebuffer-rendering {:doc "▶ two cameras into two framebuffers" :task (exit-with (run-scene "framebuffer-rendering"))}
+  mouse-painting {:doc "▶ a paint program on a render-target canvas" :task (exit-with (run-scene "mouse-painting"))}
+  magnifying-glass {:doc "▶ a lens that magnifies what it covers" :task (exit-with (run-scene "magnifying-glass"))}
+  top-down-lights {:doc "▶ lights and shadow volumes from a top-down view" :task (exit-with (run-scene "top-down-lights"))}
+  raw-data {:doc "▶ textures built from a hand-filled byte buffer" :task (exit-with (run-scene "raw-data"))}
+  screen-buffer {:doc "▶ the classic DOS fire effect" :task (exit-with (run-scene "screen-buffer"))}
+  ;; END per-scene tasks
+  }}

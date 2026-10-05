@@ -1,0 +1,147 @@
+;; Every scene: its sub-project directory (:name), its id in the gallery, its category,
+;; its title, a one-line description (49 characters at most) and where it comes from.
+;;
+;; :name  is the raylib-jolt-demo demo the scene ports where one exists, else the scene id.
+;; :from  is that raylib-jolt-demo demo (originally raylib-jlt), or "jasalt" for the three
+;;        scenes carried from jasalt/jolt-android-experiment.
+;; :home  :raylib-ios marks a scene that lives in raylib-ios itself and has no sub-project.
+;;
+;; The order is the gallery's registration order, and each category lists its scenes in
+;; this order. Edited by hand. After a change, run `bb gen`.
+[{:name "eyes", :id :following-eyes, :category "toys", :title "Following Eyes", :desc "two eyes that track your finger", :from "jasalt"}
+ {:name "mouse-trail", :id :touch-trail, :category "toys", :title "Touch Trail", :desc "a fading trail follows your finger", :from "jasalt"}
+ {:name "flappy-bird", :id :flappy-bird, :category "games", :title "Flappy Bird", :desc "tap to flap through the pipe gaps", :from "jasalt"}
+ {:name "spirograph", :id :spirograph, :category "generative", :title "Spirograph", :desc "a hypotrochoid that draws itself, then resets", :from "spirograph"}
+ {:name "kaleidoscope", :id :kaleidoscope, :category "generative", :title "Kaleidoscope", :desc "a stroke mirrored with six-fold symmetry", :from "kaleidoscope"}
+ {:name "fireworks", :id :fireworks, :category "generative", :title "Fireworks", :desc "rockets and fading particle bursts", :from "fireworks"}
+ {:name "penrose-tiling", :id :penrose, :category "generative", :title "Penrose", :desc "a Penrose P3 tiling made by deflation", :from "penrose-tiling"}
+ {:name "boids", :id :boids, :category "toys", :title "Boids", :desc "a flock: separation, alignment, cohesion", :from "boids"}
+ {:name "double-pendulum", :id :pendulum, :category "toys", :title "Double Pendulum", :desc "a chaotic double pendulum with a trail", :from "double-pendulum"}
+ {:name "fourier-epicycles", :id :epicycles, :category "generative", :title "Fourier Epicycles", :desc "circles on circles that draw a square wave", :from "fourier-epicycles"}
+ {:name "hilbert-curve", :id :hilbert, :category "fractals", :title "Hilbert Curve", :desc "a Hilbert curve drawn progressively", :from "hilbert-curve"}
+ {:name "recursive-tree", :id :tree, :category "fractals", :title "Fractal Tree", :desc "a binary fractal tree that sways", :from "recursive-tree"}
+ {:name "stars", :id :stars, :category "toys", :title "Starfield", :desc "a twinkling starfield", :from "stars"}
+ {:name "l-system", :id :lsystem, :category "fractals", :title "L-system Plant", :desc "an L-system plant that grows and regrows", :from "l-system"}
+ {:name "flow-field", :id :flowfield, :category "generative", :title "Flow Field", :desc "particles steered by a flow field", :from "flow-field"}
+ {:name "lorenz-attractor", :id :lorenz, :category "generative", :title "Lorenz", :desc "the Lorenz attractor, re-projected each frame", :from "lorenz-attractor"}
+ {:name "tesseract-view", :id :tesseract, :category "toys", :title "Tesseract", :desc "a rotating 4D hypercube", :from "tesseract-view"}
+ {:name "game-of-life", :id :life, :category "generative", :title "Life", :desc "Conway's Game of Life, reseeded when it stalls", :from "game-of-life"}
+ {:name "cellular-automata", :id :automata, :category "fractals", :title "Automata", :desc "elementary cellular automata, scrolling", :from "cellular-automata"}
+ {:name "color-wheel", :id :colorwheel, :category "toys", :title "Colour Wheel", :desc "an HSV colour wheel as an rlgl triangle fan", :from "color-wheel"}
+ {:name "math-sine-cosine", :id :unitcircle, :category "toys", :title "Sine & Cosine", :desc "sine and cosine as projections of a radius", :from "math-sine-cosine"}
+ {:name "digital-clock", :id :clock, :category "toys", :title "Clock", :desc "a seven-segment clock from libc time", :from "digital-clock"}
+ {:name "pie-chart", :id :piechart, :category "toys", :title "Pie Chart", :desc "a rotating pie chart", :from "pie-chart"}
+ {:name "logo-anim", :id :logoanim, :category "toys", :title "raylib Logo", :desc "the raylib logo assembling itself", :from "logo-anim"}
+ {:name "easings", :id :easings, :category "toys", :title "Easings", :desc "all fifteen easing curves on one clock", :from "easings"}
+ {:name "math-angle-rotation", :id :angles, :category "toys", :title "Angles", :desc "fixed spokes and one that turns", :from "math-angle-rotation"}
+ {:name "writing-anim", :id :writing, :category "toys", :title "Writing", :desc "a message that types itself out", :from "writing-anim"}
+ {:name "ball-physics", :id :balls, :category "toys", :title "Ball Physics", :desc "balls under gravity", :from "ball-physics"}
+ {:name "random-sequence", :id :sequence, :category "toys", :title "Random Sequence", :desc "a shuffled sequence of bars", :from "random-sequence"}
+ {:name "bullet-hell", :id :bullets, :category "generative", :title "Bullet Spiral", :desc "a three-armed bullet spiral", :from "bullet-hell"}
+ {:name "collision-area", :id :collision, :category "toys", :title "Collision Area", :desc "two boxes and their overlap", :from "collision-area"}
+ {:name "dashed-line", :id :dashed, :category "toys", :title "Dashed Line", :desc "a dashed line to your finger", :from "dashed-line"}
+ {:name "input-multitouch", :id :multitouch, :category "toys", :title "Multitouch", :desc "a circle and trail for every finger", :from "input-multitouch"}
+ {:name "analog-clock", :id :analog, :category "toys", :title "Analog Clock", :desc "a live analog clock face", :from "analog-clock"}
+ {:name "clock-of-clocks", :id :clockgrid, :category "toys", :title "Clock of Clocks", :desc "the time spelled by a grid of tiny clocks", :from "clock-of-clocks"}
+ {:name "circle-sector-drawing", :id :sector, :category "toys", :title "Circle Sector", :desc "a pie slice that degrades to a triangle", :from "circle-sector-drawing"}
+ {:name "colors", :id :palette, :category "toys", :title "Colours", :desc "every colour raylib names, as a grid", :from "colors"}
+ {:name "gradient", :id :gradient, :category "toys", :title "Gradients", :desc "colour interpolated across a rectangle", :from "gradient"}
+ {:name "ring-drawing", :id :ring, :category "toys", :title "Ring Drawing", :desc "a breathing annulus with a stroked outline", :from "ring-drawing"}
+ {:name "splines", :id :splines, :category "toys", :title "Splines", :desc "three spline bases over five points", :from "splines"}
+ {:name "rounded-rectangle", :id :rounded, :category "toys", :title "Rounded Rect", :desc "a rectangle breathing from square to round", :from "rounded-rectangle"}
+ {:name "vector-angle", :id :vecangle, :category "toys", :title "Vector Angle", :desc "the signed angle between two vectors", :from "vector-angle"}
+ {:name "rectangle-advanced", :id :bars, :category "toys", :title "Rounded Bars", :desc "per-side rounded bars with a gradient", :from "rectangle-advanced"}
+ {:name "lines-bezier", :id :bezier, :category "toys", :title "Bezier", :desc "a cubic Bezier that follows your finger", :from "lines-bezier"}
+ {:name "lines-drawing", :id :fan, :category "toys", :title "Line Widths", :desc "a turning fan of thick lines", :from "lines-drawing"}
+ {:name "scissor-test", :id :clipbox, :category "toys", :title "Scissor", :desc "a moving scissor box clips a grid", :from "scissor-test"}
+ {:name "rectangle-scaling", :id :resize, :category "toys", :title "Resize", :desc "drag a corner handle to resize a rectangle", :from "rectangle-scaling"}
+ {:name "words-alignment", :id :align, :category "toys", :title "Text Alignment", :desc "a word aligned left, centre and right", :from "words-alignment"}
+ {:name "delta-time", :id :deltatime, :category "toys", :title "Delta Time", :desc "per-frame against delta-time movement", :from "delta-time"}
+ {:name "random-values", :id :randomvalues, :category "toys", :title "Random Values", :desc "a new random number every two seconds", :from "random-values"}
+ {:name "format-text", :id :formattext, :category "toys", :title "Formatted Text", :desc "a padded score and an MM:SS timer", :from "format-text"}
+ {:name "triangle-strip", :id :strip, :category "toys", :title "Triangle Strip", :desc "a rainbow triangle strip", :from "triangle-strip"}
+ {:name "mouse", :id :touchball, :category "toys", :title "Touch Ball", :desc "a ball that follows your finger", :from "mouse"}
+ {:name "rlgl-triangle", :id :rlgltriangle, :category "toys", :title "rlgl Triangle", :desc "a Gouraud triangle with draggable corners", :from "rlgl-triangle"}
+ {:name "particles", :id :particles, :category "toys", :title "Particles", :desc "water, smoke and fire from your fingertip", :from "particles"}
+ {:name "breakout", :id :breakout, :category "games", :title "Breakout", :desc "paddle, ball and bricks", :from "breakout"}
+ {:name "bounce", :id :bounce, :category "toys", :title "Bouncing Ball", :desc "a bouncing ball; tap to pause", :from "bounce"}
+ {:name "snake", :id :snake, :category "games", :title "Snake", :desc "the classic snake, steered by swipes", :from "snake"}
+ {:name "game-2048", :id :game2048, :category "games", :title "2048", :desc "2048, played by swipe", :from "game-2048"}
+ {:name "minesweeper", :id :minesweeper, :category "games", :title "Minesweeper", :desc "tap to reveal, long press to flag", :from "minesweeper"}
+ {:name "pong", :id :pong, :category "games", :title "Pong", :desc "pong against a CPU, paddle on a finger", :from "pong"}
+ {:name "space-invaders", :id :invaders, :category "games", :title "Space Invaders", :desc "marching aliens and a one-finger ship", :from "space-invaders"}
+ {:name "tetris", :id :tetris, :category "games", :title "Tetris", :desc "the block-stacking puzzle by drag and tap", :from "tetris"}
+ {:name "asteroids", :id :asteroids, :category "games", :title "Asteroids", :desc "the vector shooter on four buttons", :from "asteroids"}
+ {:name "input-virtual-controls", :id :virtualpad, :category "toys", :title "Virtual Controls", :desc "an on-screen D-pad and action button", :from "input-virtual-controls"}
+ {:name "starfield-effect", :id :starfield, :category "toys", :title "Starfield Effect", :desc "stars flying at you, dragged faster or slower", :from "starfield-effect"}
+ {:name "easings-box", :id :easingsbox, :category "toys", :title "Easings Box", :desc "drop, flatten, spin, grow and fade a square", :from "easings-box"}
+ {:name "easings-testbed", :id :easingstestbed, :category "toys", :title "Easings Testbed", :desc "one easing curve at a time, plotted", :from "easings-testbed"}
+ {:name "rectangle-bounds", :id :rectbounds, :category "toys", :title "Rectangle Bounds", :desc "word-wrapped text in a resizable box", :from "rectangle-bounds"}
+ {:name "rlgl-color-wheel", :id :huewheel, :category "toys", :title "rlgl Hue Wheel", :desc "a hue wheel with a colour on every vertex", :from "rlgl-color-wheel"}
+ {:name "logo", :id :logo, :category "toys", :title "Still Logo", :desc "the raylib logo, still", :from "logo"}
+ {:name "text", :id :fontsizes, :category "toys", :title "Font Sizes", :desc "lines at several sizes and colours", :from "text"}
+ {:name "inline-styling", :id :inlinestyle, :category "toys", :title "Inline Styling", :desc "colours set inside the string itself", :from "inline-styling"}
+ {:name "outlines-thickness", :id :outlines, :category "toys", :title "Outline Thickness", :desc "three outlines driven by one thickness", :from "outlines-thickness"}
+ {:name "shapes", :id :shapes, :category "toys", :title "Basic Shapes", :desc "a static tour of the basic shapes", :from "shapes"}
+ {:name "ellipse-collision", :id :ellipses, :category "toys", :title "Ellipse Collision", :desc "two ellipses that redden when they overlap", :from "ellipse-collision"}
+ {:name "basic-screen-manager", :id :screens, :category "toys", :title "Screen Manager", :desc "a LOGO, TITLE, GAMEPLAY, ENDING flow", :from "basic-screen-manager"}
+ {:name "vampire-survivors", :id :survivors, :category "games", :title "Vampire Survivors", :desc "auto-fire survival with a thumb-stick", :from "vampire-survivors"}
+ {:name "pacman", :id :pacman, :category "games", :title "Pac-Man", :desc "Pac-Man, steered by swipes", :from "pacman"}
+ {:name "hello", :id :hello, :category "toys", :title "Basic Window", :desc "the basic window: one line of text", :from "core", :home :raylib-ios}
+ {:name "input", :id :nudge, :category "toys", :title "Keyboard Ball", :desc "a ball moved with a thumb-stick", :from "input"}
+ {:name "wheel", :id :wheelbox, :category "toys", :title "Mouse Wheel", :desc "a box dragged up and down", :from "wheel"}
+ {:name "undo-redo", :id :undoredo, :category "toys", :title "Undo Redo", :desc "a square on a grid with bounded undo", :from "undo-redo"}
+ {:name "strings-management", :id :strings, :category "toys", :title "Strings Management", :desc "text particles you throw, cut and glue", :from "strings-management"}
+ {:name "camera2d", :id :camera2d, :category "toys", :title "2D Camera", :desc "a 2D camera following a player on a skyline", :from "camera2d"}
+ {:name "camera-2d-mouse-zoom", :id :camerazoom, :category "toys", :title "2D Camera Zoom", :desc "a 2D camera zooming about a pinned point", :from "camera-2d-mouse-zoom"}
+ {:name "camera-2d-platformer", :id :platformer, :category "toys", :title "2D Platformer", :desc "five ways for a camera to follow a player", :from "camera-2d-platformer"}
+ {:name "camera-2d-split-screen", :id :splitscreen, :category "toys", :title "2D Split Screen", :desc "two players on one grid in split screen", :from "camera-2d-split-screen"}
+ {:name "input-gestures", :id :gestures, :category "toys", :title "Input Gestures", :desc "raylib's gesture recogniser, named and logged", :from "input-gestures"}
+ {:name "helitorus", :id :helitorus, :category "toys", :title "Helitorus", :desc "a helix wound around a torus", :from "helitorus"}
+ {:name "rotating-cube", :id :rotcube, :category "toys", :title "Rotating Cube", :desc "a cube turning in place", :from "rotating-cube"}
+ {:name "camera-3d", :id :camera3d, :category "toys", :title "3D Camera", :desc "an orbiting 3D camera", :from "camera-3d"}
+ {:name "orthographic-projection", :id :ortho, :category "toys", :title "Orthographic Projection", :desc "perspective against orthographic projection", :from "orthographic-projection"}
+ {:name "spinning-cubes", :id :spincubes, :category "toys", :title "Spinning Cubes", :desc "a row of cubes spinning with a phase offset", :from "spinning-cubes"}
+ {:name "world-screen", :id :worldscreen, :category "toys", :title "World to Screen", :desc "a 2D label pinned above a 3D cube", :from "world-screen"}
+ {:name "wireframe-shapes", :id :wireframes, :category "toys", :title "Wireframe Shapes", :desc "four wireframe solids tumbling", :from "wireframe-shapes"}
+ {:name "camera-3d-free", :id :freecam, :category "toys", :title "3D Free Camera", :desc "a free 3D camera on two thumbs", :from "camera-3d-free"}
+ {:name "yaw-pitch-roll", :id :yawpitchroll, :category "toys", :title "Yaw Pitch Roll", :desc "a plane flown with three aircraft rotations", :from "yaw-pitch-roll"}
+ {:name "box-collisions", :id :boxcollide, :category "toys", :title "Box Collisions", :desc "a cube walked across a grid of boxes", :from "box-collisions"}
+ {:name "picking-3d", :id :picking, :category "toys", :title "3D Picking", :desc "tap a cube to pick it with a ray", :from "picking-3d"}
+ {:name "waving-cubes", :id :wavecubes, :category "toys", :title "Waving Cubes", :desc "a grid of columns rippling like water", :from "waving-cubes"}
+ {:name "rlgl-solar-system", :id :solarsystem, :category "toys", :title "Solar System", :desc "a sun, Earth and Moon through nested transforms", :from "rlgl-solar-system"}
+ {:name "point-cloud", :id :pointcloud, :category "toys", :title "Point Cloud", :desc "a cloud of points turning slowly", :from "point-cloud"}
+ {:name "camera-3d-first-person", :id :fpcamera, :category "toys", :title "First-Person Camera", :desc "a first-person walk round a yard of columns", :from "camera-3d-first-person"}
+ {:name "first-person-maze", :id :fpmaze, :category "toys", :title "First-Person Maze", :desc "a first-person maze with a minimap", :from "first-person-maze"}
+ {:name "camera-3d-split-screen", :id :split3d, :category "toys", :title "3D Split Screen", :desc "two players, two cameras, half a screen each", :from "camera-3d-split-screen"}
+ {:name "bouncing-spheres", :id :spheres, :category "toys", :title "Bouncing Spheres", :desc "six balls bouncing in a box", :from "bouncing-spheres"}
+ {:name "bunnymark", :id :bunnymark, :category "toys", :title "Bunnymark", :desc "the sprite-count benchmark", :from "bunnymark"}
+ {:name "background-scrolling", :id :bgscroll, :category "toys", :title "Background Scrolling", :desc "three parallax skyline layers", :from "background-scrolling"}
+ {:name "sprite-stacking", :id :spritestack, :category "toys", :title "Sprite Stacking", :desc "forty slices faking a 3D car", :from "sprite-stacking"}
+ {:name "smooth-pixelperfect", :id :pixelperfect, :category "toys", :title "Smooth Pixel-Perfect", :desc "a smooth pixel-perfect camera", :from "smooth-pixelperfect"}
+ {:name "viewport-scaling", :id :vpscaling, :category "toys", :title "Viewport Scaling", :desc "six viewport scaling policies", :from "viewport-scaling"}
+ {:name "window-letterbox", :id :letterbox, :category "toys", :title "Window Letterbox", :desc "a fixed picture letterboxed to any shape", :from "window-letterbox"}
+ {:name "fog-of-war", :id :fogofwar, :category "toys", :title "Fog of War", :desc "a tile map under a fog that lifts as you walk", :from "fog-of-war"}
+ {:name "blend-modes", :id :blendmodes, :category "toys", :title "Blend Modes", :desc "blend modes over a night skyline", :from "blend-modes"}
+ {:name "particles-blending", :id :blendparticles, :category "toys", :title "Particles Blending", :desc "200 sparks, alpha against additive", :from "particles-blending"}
+ {:name "billboard-rendering", :id :billboard, :category "toys", :title "Billboard Rendering", :desc "camera-facing billboards over a grid", :from "billboard-rendering"}
+ {:name "directional-billboard", :id :dirbillboard, :category "toys", :title "Directional Billboard", :desc "a walking billboard figure seen from all sides", :from "directional-billboard"}
+ {:name "textured-cube", :id :texcube, :category "toys", :title "Textured Cube", :desc "two textured cubes under an orbiting camera", :from "textured-cube"}
+ {:name "geometric-shapes", :id :geoshapes, :category "toys", :title "Geometric Shapes", :desc "cubes, a sphere, cylinders, a cone, a capsule", :from "geometric-shapes"}
+ {:name "basic-voxel", :id :voxel, :category "toys", :title "Basic Voxel", :desc "a voxel block you walk round and hollow out", :from "basic-voxel"}
+ {:name "doom", :id :doom, :category "toys", :title "Doom-like Raycaster", :desc "a Doom-style ray caster on two thumbs", :from "doom"}
+ {:name "texture-tiling", :id :textiling, :category "toys", :title "Texture Tiling", :desc "one tile repeated across the screen", :from "texture-tiling"}
+ {:name "srcrec-dstrec", :id :srcrec, :category "toys", :title "Srcrec Dstrec", :desc "a source rectangle picks the frame, a dest scales", :from "srcrec-dstrec"}
+ {:name "sprite-button", :id :spritebutton, :category "toys", :title "Sprite Button", :desc "one sheet, three button states", :from "sprite-button"}
+ {:name "npatch-drawing", :id :npatch, :category "toys", :title "Npatch Drawing", :desc "nine-patch stretching with fixed corners", :from "npatch-drawing"}
+ {:name "polygon-drawing", :id :texpoly, :category "toys", :title "Polygon Drawing", :desc "a hue-wheel texture on a polygon", :from "polygon-drawing"}
+ {:name "texture-procedural", :id :texproc, :category "toys", :title "Procedural Textures", :desc "four procedural textures", :from "texture-procedural"}
+ {:name "sprite-animation", :id :spriteanim, :category "toys", :title "Sprite Animation", :desc "six poses cycled from one source rectangle", :from "sprite-animation"}
+ {:name "textured-curve", :id :texcurve, :category "toys", :title "Textured Curve", :desc "a road texture laid along a Bezier curve", :from "textured-curve"}
+ {:name "render-texture", :id :rendertex, :category "toys", :title "Render Texture", :desc "a scene drawn off-screen, then reused", :from "render-texture"}
+ {:name "framebuffer-rendering", :id :fbrender, :category "toys", :title "Framebuffer Rendering", :desc "two cameras into two framebuffers", :from "framebuffer-rendering"}
+ {:name "mouse-painting", :id :mousepaint, :category "toys", :title "Mouse Painting", :desc "a paint program on a render-target canvas", :from "mouse-painting"}
+ {:name "magnifying-glass", :id :magnify, :category "toys", :title "Magnifying Glass", :desc "a lens that magnifies what it covers", :from "magnifying-glass"}
+ {:name "top-down-lights", :id :toplights, :category "toys", :title "Top Down Lights", :desc "lights and shadow volumes from a top-down view", :from "top-down-lights"}
+ {:name "raw-data", :id :rawdata, :category "toys", :title "Raw Data", :desc "textures built from a hand-filled byte buffer", :from "raw-data"}
+ {:name "screen-buffer", :id :screenbuf, :category "toys", :title "Screen Buffer", :desc "the classic DOS fire effect", :from "screen-buffer"}]

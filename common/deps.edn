@@ -1,0 +1,12 @@
+{;; Shared by every scene: the raylib-ios platform (the host loop, the single-scene
+ ;; runner, the iOS build tools) and the demo-side helpers in common/src.
+ ;;
+ ;; This is the one place raylib-ios is pinned. Every sub-project depends on
+ ;; common/, so they all get the platform through here, and so do tools/ios'
+ ;; build scripts, which each sub-project's tasks find through this dependency
+ ;; (scripts/ios_tools.clj). Until raylib-ios is pushed this is a checkout beside
+ ;; this one; the pinned form is
+ ;;   {:git/url "https://github.com/jlt-commons/raylib-ios.git" :git/sha "<sha>"}
+ :jolt/min-version "0.8.0"
+ :paths ["src"]
+ :deps {net.b12n/raylib-ios {:local/root "../../raylib-ios"}}}
