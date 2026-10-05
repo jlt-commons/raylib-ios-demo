@@ -8,6 +8,7 @@
 ;;   bb <scene>            build one scene as an app of its own, e.g. bb asteroids
 ;;   bb run <scene>        the same, by argument (the scene id works too)
 ;;   bb live <scene>       the same scene with an nREPL on the phone (dev builds)
+;;   bb proxy              another terminal, after a live build: the nREPL over USB
 ;;   bb list               flat list of scenes with descriptions
 ;;   bb test [scene]       the tests: every scene's, or one sub-project's
 ;;   bb check              load every app namespace, no window
@@ -89,6 +90,7 @@
      (row "run <scene>" "the same, by argument; the scene id works too")
      (row "live <scene>" "the same scene with an nREPL on the phone (dev)")
      (row "gallery:live" "the gallery with an nREPL on the phone (dev)")
+     (row "proxy" "another terminal, after a live build: the nREPL over USB")
      (hdr "Look")
      (row "list" "flat list of scenes with descriptions")
      (hdr "Verify")
@@ -133,6 +135,10 @@
   gallery:live
   {:doc "The gallery with an nREPL on the phone"
    :task (exit-with (ios-tools/live! "gallery" "net.b12n.raylib-ios.demo.gallery.live"))}
+
+  proxy
+  {:doc "Forward the phone's nREPL over USB, after bb live or bb gallery:live"
+   :task (exit-with (ios-tools/proxy! "common"))}
 
   test
   {:doc "Every scene's tests, or one sub-project's: test [scene]"

@@ -48,8 +48,9 @@ bb doctor                       # is jolt there, does raylib-ios resolve, is Xco
 UDID=<hardware udid> bb gallery           # all scenes in one app
 UDID=<hardware udid> bb asteroids         # one scene as an app of its own
 UDID=<hardware udid> bb live asteroids    # the same, with an nREPL (dev builds only)
+UDID=<hardware udid> bb proxy          # another terminal, after bb live: the nREPL over USB
 bb list                         # every scene, with its category and description
-bb test                         # every scene's tests, no device needed
+bb test                         # every scene's tests, no device needed (11 scenes have none yet, and bb test <scene> says so)
 ```
 
 Device builds need **jolt v0.8.15**. From v0.8.16 on, `jolt live` fails to build

@@ -94,6 +94,12 @@
   (sh! dir "live.sh" {"NS" ns
                       "DEV_BUILD" (or (System/getenv "DEV_BUILD") "1")}))
 
+(defn proxy!
+  "Forward the phone's nREPL port to this machine over USB, with raylib-ios's
+  proxy.sh. UDID names the phone; LOCAL_PORT and DEVICE_PORT pass through."
+  [dir]
+  (sh! dir "proxy.sh" {}))
+
 (defn has-tests?
   "True when the sub-project in `dir` has a test namespace."
   [dir]
