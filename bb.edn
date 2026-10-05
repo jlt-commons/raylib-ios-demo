@@ -168,7 +168,7 @@
                ;; what a build needs, and what only a Mac with a phone has
                required [["jolt on PATH" jolt? "install jolt: https://github.com/jolt-lang/jolt"]
                          ["raylib-ios with tools/ios (resolved from common/deps.edn)" ios-root
-                          "common/deps.edn: does net.b12n/raylib-ios resolve? A :local/root needs the checkout beside this one."]
+                          "common/deps.edn: does net.b12n/raylib-ios resolve? A :git/sha needs the network the first time; a :local/root needs that checkout."]
                          ["demos.edn" (fs/exists? "demos.edn") "restore it from git"]]
                advisory [["xcrun (Xcode), needed to build for the phone" (fs/which "xcrun")]
                          ["UDID set, needed to install on the phone" (System/getenv "UDID")]]]

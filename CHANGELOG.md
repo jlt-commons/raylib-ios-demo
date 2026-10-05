@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-10-04: pinned to GitHub
+
+- `common/deps.edn` pins raylib-ios at 5691933 (`:git/url` and the full `:git/sha`)
+  instead of a checkout beside this repo, which `:local/root "../../raylib-ios"` used
+  to need. The first `bb doctor` fetches it into jolt's gitlibs.
+- CI drops the second `actions/checkout` and the `path` and `working-directory`
+  settings, as raylib-jolt-demo's does.
+
 ## 2026-10-04: the split
 
 - The scenes moved here from raylib-ios as 136 sub-projects, one per scene, laid

@@ -156,9 +156,6 @@ Still blocked, and what each waits on:
   the version. Move on when jolt fixes it.
 - **Move the CI jolt pin forward** from 0.8.6. The suite is green on newer
   releases.
-- **Pin raylib-ios by sha.** `common/deps.edn` points at a checkout beside this
-  one until raylib-ios is pushed. Then it takes a `:git/url` and a `:git/sha`,
-  and CI stops checking out a second repository.
 - **`bb gen` cannot see a file orphaned by an `:id` change.** A renamed `:name`
   is caught; a changed `:id` leaves the old `app.clj` and `live.clj` behind, to
   delete by hand.
@@ -175,5 +172,7 @@ Still blocked, and what each waits on:
 
 ## Done
 
+- 2026-10-04: raylib-ios is pinned by `:git/sha` in `common/deps.edn`, and CI no
+  longer checks out a second repository. See `CHANGELOG.md`.
 - 2026-10-04: the scenes moved here from raylib-ios, one sub-project each, with
   a generated registry for the gallery. See `CHANGELOG.md`.

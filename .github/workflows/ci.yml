@@ -6,10 +6,9 @@ name: CI
 # cross-compiler, raylib and SDL2 compiled for the device and a signing identity,
 # and nothing in CI can put a frame on a phone.
 #
-# common/deps.edn points at a raylib-ios checkout beside this one. Until raylib-ios
-# is pushed and pinned by :git/sha there, this workflow checks both repositories
-# out side by side under the workspace, which is where ../../raylib-ios from
-# common/ lands. Pinning removes the second checkout.
+# The platform arrives as a git dependency, pinned by :git/sha in
+# common/deps.edn, so jolt and the Clojure CLI fetch raylib-ios themselves. No
+# second checkout is needed.
 # ---------------------------------------------------------------------------
 
 on:
@@ -42,22 +41,12 @@ env:
   CLJ_KONDO_VERSION: "2026.08.04"
   SHELLCHECK_VERSION: v0.9.0
 
-defaults:
-  run:
-    working-directory: raylib-ios-demo
-
 jobs:
   checks:
     name: doctor · generated files · lint · load every app
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-        with:
-          path: raylib-ios-demo
-      - uses: actions/checkout@v7.0.1
-        with:
-          repository: jlt-commons/raylib-ios
-          path: raylib-ios
 
       - name: Install jolt
         run: |
@@ -98,12 +87,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-        with:
-          path: raylib-ios-demo
-      - uses: actions/checkout@v7.0.1
-        with:
-          repository: jlt-commons/raylib-ios
-          path: raylib-ios
 
       - name: Install jolt
         run: |
@@ -128,12 +111,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-        with:
-          path: raylib-ios-demo
-      - uses: actions/checkout@v7.0.1
-        with:
-          repository: jlt-commons/raylib-ios
-          path: raylib-ios
 
       - name: Install Clojure
         uses: DeLaGuardo/setup-clojure@13.6.1
@@ -150,7 +127,7 @@ jobs:
           path: |
             ~/.m2
             ~/.gitlibs
-          key: ${{ runner.os }}-deps-${{ hashFiles('raylib-ios-demo/deps.edn', 'raylib-ios-demo/common/deps.edn') }}
+          key: ${{ runner.os }}-deps-${{ hashFiles('deps.edn', 'common/deps.edn') }}
 
       # The pure tests, plus the jasalt identity check, which needs sha256 and so
       # runs only here.
@@ -168,8 +145,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
-        with:
-          path: raylib-ios-demo
 
       - name: Install shellcheck ${{ env.SHELLCHECK_VERSION }}
         run: |

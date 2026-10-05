@@ -39,9 +39,10 @@ is how the gallery still shows 137.
 ## Running one
 
 You need the phone's hardware udid (`jolt devices` lists it), Xcode, a paired
-iPhone, and raylib-ios checked out beside this repo, because `common/deps.edn`
-points at `../../raylib-ios` until raylib-ios is pushed and can be pinned by sha.
-raylib-ios's README covers the one-time setup of the SDL2 and raylib archives.
+iPhone. raylib-ios arrives as a git dependency pinned by sha in `common/deps.edn`,
+and the first `bb doctor` fetches it into jolt's gitlibs, so that run needs the
+network. raylib-ios's README covers the one-time setup of the SDL2 and raylib
+archives.
 
 ```sh
 bb doctor                       # is jolt there, does raylib-ios resolve, is Xcode there?
