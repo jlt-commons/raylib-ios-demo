@@ -35,7 +35,7 @@ concurrency:
 # that matters most: a new lint rule arriving on its own schedule would fail a gate
 # set to --fail-level warning, on code that has not changed.
 env:
-  JOLT_VERSION: ${{ inputs.jolt-version || '0.8.6' }}
+  JOLT_VERSION: ${{ inputs.jolt-version || '0.8.24' }}
   CLOJURE_VERSION: 1.12.6.1673
   BB_VERSION: 1.12.196
   CLJ_KONDO_VERSION: "2026.08.04"
@@ -83,7 +83,7 @@ jobs:
         run: bb check
 
   jolt:
-    name: tests on jolt ${{ inputs.jolt-version || '0.8.6' }}
+    name: tests on jolt ${{ inputs.jolt-version || '0.8.24' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1

@@ -222,13 +222,15 @@
 
 (defn- type-violation
   "What is wrong with `args` against the defcfn parameter `types`, or nil. The
-  rules are the FFI's: a :float or :double must be a double (jolt rejects an integer), an
-  :int, :uint or :uint8 an integer and a :string a string."
+  rules are the FFI's: a :float or :double must be a double or a Float (jolt
+  rejects an integer; since jolt 0.8.20 `(float x)` is a boxed java.lang.Float,
+  which the FFI passes as a C float), an :int, :uint or :uint8 an integer and a
+  :string a string."
   [types args]
   (or (when (not= (count types) (count args)) :arity)
       (some (fn [[t a]]
               (case t
-                (:float :double) (when-not (double? a)
+                (:float :double) (when-not (or (double? a) (instance? Float a))
                                    (if (integer? a) :float-got-integer :float-got-other))
                 (:int :uint :uint8) (when-not (integer? a) [t :got-other])
                 :pointer (when (nil? a) :pointer-got-nil)
